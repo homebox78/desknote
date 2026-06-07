@@ -9,6 +9,7 @@ interface Props {
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onAdd: (parent: string | null) => void;
+  onAddDatabase: (parent: string | null) => void;
   onMenu: (e: MouseEvent, page: db.Page) => void;
   onSearch: () => void;
   onTrash: () => void;
@@ -104,6 +105,10 @@ export function Sidebar(p: Props) {
       <div className="sb-item" onClick={() => p.onAdd(null)}>
         <span className="icon">＋</span>
         <span className="label">새 페이지</span>
+      </div>
+      <div className="sb-item" onClick={() => p.onAddDatabase(null)}>
+        <span className="icon">🗃️</span>
+        <span className="label">새 데이터베이스</span>
       </div>
     </aside>
   );

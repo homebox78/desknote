@@ -15,10 +15,11 @@ export interface Page {
   title: string;
   icon: string;
   is_favorite: number;
+  type: string; // 'doc' | 'db'
 }
 
 const SELECT_COLS =
-  "id, parent_id, title, icon, is_favorite";
+  "id, parent_id, title, icon, is_favorite, type";
 
 export async function listPages(): Promise<Page[]> {
   const db = await getDb();
@@ -104,8 +105,8 @@ export async function duplicatePage(id: string): Promise<string | null> {
   const newId = crypto.randomUUID();
   const sort = await nextSortOrder(src[0].parent_id);
   await db.execute(
-    "INSERT INTO pages (id, parent_id, title, icon, sort_order) VALUES (?, ?, ?, ?, ?)",
-    [newId, src[0].parent_id, `${src[0].title} (사본)`, src[0].icon, sort]
+    "INSERT INTO pages (id, parent_id, title, icon, type, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+    [newId, src[0].parent_id, `${src[0].title} (사본)`, src[0].icon, src[0].type, sort]
   );
   const content = await loadContent(id);
   await db.execute("INSERT INTO page_content (page_id, content) VALUES (?, ?)", [

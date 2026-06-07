@@ -6,6 +6,7 @@ import type { PartialBlock } from "@blocknote/core";
 import * as db from "../lib/db";
 import { uploadFile } from "../lib/upload";
 import { exportMarkdown, exportHTML, exportPDF } from "../lib/export";
+import { DatabaseView } from "./database/DatabaseView";
 
 interface Props {
   page: db.Page;
@@ -20,9 +21,11 @@ interface Props {
  * pages remounts and reloads cleanly.
  */
 export function PageView({ page, theme, onPatch, refresh }: Props) {
+  const isDb = page.type === "db";
   const [blocks, setBlocks] = useState<PartialBlock[] | null>(null);
 
   useEffect(() => {
+    if (isDb) return;
     let alive = true;
     db.loadContent(page.id).then((json) => {
       let parsed: PartialBlock[] = [];
@@ -36,7 +39,7 @@ export function PageView({ page, theme, onPatch, refresh }: Props) {
     return () => {
       alive = false;
     };
-  }, [page.id]);
+  }, [page.id, isDb]);
 
   const commitMeta = () => {
     db.updateMeta(page.id, page.title, page.icon).then(refresh);
@@ -64,14 +67,18 @@ export function PageView({ page, theme, onPatch, refresh }: Props) {
           if (e.key === "Enter") e.currentTarget.blur();
         }}
       />
-      {blocks !== null && (
-        <EditorBody
-          key={page.id}
-          pageId={page.id}
-          title={page.title}
-          theme={theme}
-          initialBlocks={blocks}
-        />
+      {isDb ? (
+        <DatabaseView pageId={page.id} />
+      ) : (
+        blocks !== null && (
+          <EditorBody
+            key={page.id}
+            pageId={page.id}
+            title={page.title}
+            theme={theme}
+            initialBlocks={blocks}
+          />
+        )
       )}
     </div>
   );

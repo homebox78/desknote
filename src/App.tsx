@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import * as db from "./lib/db";
+import { createDatabasePage } from "./lib/dbviews";
 import { Lock } from "./components/Lock";
 import { Titlebar } from "./components/Titlebar";
 import { Sidebar } from "./components/Sidebar";
@@ -71,6 +72,13 @@ function Workspace() {
     setCurrent(id);
   };
 
+  const addDatabase = async (parent: string | null) => {
+    const id = await createDatabasePage(parent);
+    if (parent) setExpanded((s) => new Set(s).add(parent));
+    await refresh();
+    setCurrent(id);
+  };
+
   const toggleExpand = (id: string) =>
     setExpanded((s) => {
       const n = new Set(s);
@@ -108,6 +116,11 @@ function Workspace() {
           onClick: () => addPage(p.id),
         },
         {
+          label: "하위 데이터베이스 추가",
+          icon: "🗃️",
+          onClick: () => addDatabase(p.id),
+        },
+        {
           label: "삭제",
           icon: "🗑️",
           danger: true,
@@ -138,6 +151,7 @@ function Workspace() {
           onSelect={setCurrent}
           onToggle={toggleExpand}
           onAdd={addPage}
+          onAddDatabase={addDatabase}
           onMenu={openMenu}
           onSearch={() => setShowSearch(true)}
           onTrash={() => setShowTrash(true)}

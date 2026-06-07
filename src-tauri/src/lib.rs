@@ -117,6 +117,25 @@ fn migrations() -> Vec<Migration> {
             ",
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "page_type_and_db_config",
+            sql: "
+                ALTER TABLE pages ADD COLUMN type TEXT DEFAULT 'doc';
+                ALTER TABLE db_columns ADD COLUMN config TEXT DEFAULT '{}';
+                CREATE INDEX IF NOT EXISTS idx_rows_table ON db_rows(table_id);
+                CREATE INDEX IF NOT EXISTS idx_cols_table ON db_columns(table_id);
+                CREATE INDEX IF NOT EXISTS idx_tables_page ON db_tables(page_id);
+                CREATE TABLE IF NOT EXISTS page_versions (
+                    id         TEXT PRIMARY KEY,
+                    page_id    TEXT,
+                    content    TEXT,
+                    created_at TEXT DEFAULT (datetime('now'))
+                );
+                CREATE INDEX IF NOT EXISTS idx_versions_page ON page_versions(page_id);
+            ",
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

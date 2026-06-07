@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as dv from "../../lib/dbviews";
+import { exportCsv, toCsv } from "../../lib/export";
 import { TableView } from "./TableView";
 import { BoardView } from "./BoardView";
 import { GalleryView } from "./GalleryView";
@@ -23,7 +24,7 @@ export interface ViewProps {
   deleteColumn: (id: string) => void;
 }
 
-export function DatabaseView({ pageId }: { pageId: string }) {
+export function DatabaseView({ pageId, title }: { pageId: string; title?: string }) {
   const [table, setTable] = useState<dv.DbTable | null>(null);
   const [columns, setColumns] = useState<dv.Column[]>([]);
   const [rows, setRows] = useState<dv.Row[]>([]);
@@ -56,6 +57,12 @@ export function DatabaseView({ pageId }: { pageId: string }) {
   const changeView = async (kind: dv.ViewKind) => {
     setTable({ ...table, view: kind });
     await dv.setView(table.id, kind);
+  };
+
+  const exportToCsv = () => {
+    const header = columns.map((c) => c.name);
+    const body = rows.map((r) => columns.map((c) => dv.formatCell(c, r.data[c.id])));
+    void exportCsv(title || "데이터베이스", toCsv([header, ...body]));
   };
 
   const updateCell = (rowId: string, colId: string, value: unknown) => {
@@ -115,6 +122,9 @@ export function DatabaseView({ pageId }: { pageId: string }) {
         ))}
         <div className="db-toolbar-spacer" />
         <span className="db-count">{rows.length}개</span>
+        <button className="db-view-tab" onClick={exportToCsv} title="CSV로 내보내기">
+          ⬇ CSV
+        </button>
       </div>
 
       {table.view === "table" && <TableView {...props} />}

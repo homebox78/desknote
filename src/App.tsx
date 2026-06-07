@@ -3,6 +3,7 @@ import type { MouseEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import * as db from "./lib/db";
 import { createDatabasePage } from "./lib/dbviews";
+import { importFile } from "./lib/import";
 import { Lock } from "./components/Lock";
 import { Titlebar } from "./components/Titlebar";
 import { Sidebar } from "./components/Sidebar";
@@ -79,6 +80,18 @@ function Workspace() {
     setCurrent(id);
   };
 
+  const doImport = async () => {
+    try {
+      const id = await importFile();
+      if (id) {
+        await refresh();
+        setCurrent(id);
+      }
+    } catch (e) {
+      alert("가져오기 실패: " + String(e));
+    }
+  };
+
   const toggleExpand = (id: string) =>
     setExpanded((s) => {
       const n = new Set(s);
@@ -152,6 +165,7 @@ function Workspace() {
           onToggle={toggleExpand}
           onAdd={addPage}
           onAddDatabase={addDatabase}
+          onImport={doImport}
           onMenu={openMenu}
           onSearch={() => setShowSearch(true)}
           onTrash={() => setShowTrash(true)}

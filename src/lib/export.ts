@@ -80,6 +80,22 @@ export async function exportPDF(title: string, markdown: string): Promise<void> 
   await invoke("save_binary_file", { path, bytes });
 }
 
+/** Save a prebuilt CSV string (UTF-8 BOM so Excel reads Korean correctly). */
+export async function exportCsv(title: string, csv: string): Promise<void> {
+  const path = await save({
+    defaultPath: `${safeName(title)}.csv`,
+    filters: [{ name: "CSV", extensions: ["csv"] }],
+  });
+  if (!path) return;
+  await invoke("save_text_file", { path, contents: "﻿" + csv });
+}
+
+export function toCsv(rows: string[][]): string {
+  const esc = (v: string) =>
+    /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+  return rows.map((r) => r.map(esc).join(",")).join("\r\n");
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

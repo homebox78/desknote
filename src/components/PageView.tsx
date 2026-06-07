@@ -68,7 +68,7 @@ export function PageView({ page, theme, onPatch, refresh }: Props) {
         }}
       />
       {isDb ? (
-        <DatabaseView pageId={page.id} />
+        <DatabaseView pageId={page.id} title={page.title} />
       ) : (
         blocks !== null && (
           <EditorBody

@@ -239,6 +239,70 @@ export async function deleteRow(id: string): Promise<void> {
   await db.execute("DELETE FROM db_rows WHERE id = ?", [id]);
 }
 
+/** Plain-text representation of a cell value (for CSV export). */
+export function formatCell(column: Column, value: unknown): string {
+  switch (column.type) {
+    case "checkbox":
+      return value ? "true" : "false";
+    case "select": {
+      const o = column.config.options?.find((x) => x.id === value);
+      return o?.name ?? "";
+    }
+    case "multiselect": {
+      const ids = Array.isArray(value) ? (value as string[]) : [];
+      return (column.config.options ?? [])
+        .filter((o) => ids.includes(o.id))
+        .map((o) => o.name)
+        .join(", ");
+    }
+    default:
+      return value != null ? String(value) : "";
+  }
+}
+
+/** Create a database page from parsed CSV (headers + string rows). */
+export async function importCsvDatabase(
+  name: string,
+  headers: string[],
+  rows: string[][]
+): Promise<string> {
+  const db = await getDb();
+  const pageId = uuid();
+  const sort = await nextSort("pages", "parent_id", null);
+  await db.execute(
+    "INSERT INTO pages (id, parent_id, title, icon, type, sort_order) VALUES (?, NULL, ?, '🗃️', 'db', ?)",
+    [pageId, name, sort]
+  );
+  await db.execute("INSERT INTO page_content (page_id, content) VALUES (?, '[]')", [pageId]);
+
+  const tableId = uuid();
+  await db.execute(
+    "INSERT INTO db_tables (id, page_id, name, view) VALUES (?, ?, '', 'table')",
+    [tableId, pageId]
+  );
+  const colIds: string[] = [];
+  for (let i = 0; i < headers.length; i++) {
+    const id = uuid();
+    colIds.push(id);
+    await db.execute(
+      "INSERT INTO db_columns (id, table_id, name, type, config, sort_order) VALUES (?, ?, ?, 'text', '{}', ?)",
+      [id, tableId, headers[i] || `열 ${i + 1}`, i]
+    );
+  }
+  let order = 0;
+  for (const r of rows) {
+    const data: Record<string, string> = {};
+    colIds.forEach((cid, i) => {
+      if (r[i] !== undefined && r[i] !== "") data[cid] = r[i];
+    });
+    await db.execute(
+      "INSERT INTO db_rows (id, table_id, data, sort_order) VALUES (?, ?, ?, ?)",
+      [uuid(), tableId, JSON.stringify(data), order++]
+    );
+  }
+  return pageId;
+}
+
 function safeParse<T>(s: string, fallback: T): T {
   try {
     return JSON.parse(s) as T;

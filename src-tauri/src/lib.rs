@@ -64,6 +64,18 @@ fn save_binary_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
     fs::write(&path, bytes).map_err(|e| e.to_string())
 }
 
+/// Read a UTF-8 text file from a user-chosen path (Markdown / CSV import).
+#[tauri::command]
+fn read_text_file(path: String) -> Result<String, String> {
+    fs::read_to_string(&path).map_err(|e| e.to_string())
+}
+
+/// Read raw bytes from a user-chosen path (DOCX import).
+#[tauri::command]
+fn read_file_bytes(path: String) -> Result<Vec<u8>, String> {
+    fs::read(&path).map_err(|e| e.to_string())
+}
+
 fn migrations() -> Vec<Migration> {
     vec![
         Migration {
@@ -169,7 +181,9 @@ pub fn run() {
             vault_status,
             save_asset,
             save_text_file,
-            save_binary_file
+            save_binary_file,
+            read_text_file,
+            read_file_bytes
         ])
         .run(tauri::generate_context!())
         .expect("error while running DeskNote");

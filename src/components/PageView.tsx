@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import type { PartialBlock } from "@blocknote/core";
+import { invoke, convertFileSrc } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import * as db from "../lib/db";
 import { uploadFile } from "../lib/upload";
 import { exportMarkdown, exportHTML, exportPDF } from "../lib/export";
 import { getVersionContent } from "../lib/version";
 import { DatabaseView } from "./database/DatabaseView";
 import { VersionHistoryModal } from "./VersionHistoryModal";
+import { ContextMenu, MenuItem } from "./ContextMenu";
 
 interface Props {
   page: db.Page;
@@ -106,6 +110,7 @@ function EditorBody({
   const timer = useRef<number | undefined>(undefined);
   const dirty = useRef(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [ctx, setCtx] = useState<{ x: number; y: number } | null>(null);
 
   const save = async () => {
     try {
@@ -157,6 +162,63 @@ function EditorBody({
     await save();
   };
 
+  // Attach a local file/image: copy into assets, insert a block at the cursor.
+  const insertAttachment = async (kind: "image" | "file") => {
+    const sel = await open({
+      multiple: false,
+      filters:
+        kind === "image"
+          ? [{ name: "이미지", extensions: ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"] }]
+          : [],
+    });
+    if (!sel || typeof sel !== "string") return;
+    const name = sel.split(/[\\/]/).pop() ?? "file";
+    const bytes = await invoke<number[]>("read_file_bytes", { path: sel });
+    const savedPath = await invoke<string>("save_asset", { name, bytes });
+    const url = convertFileSrc(savedPath);
+    try {
+      const ref = editor.getTextCursorPosition().block;
+      editor.insertBlocks(
+        [
+          kind === "image"
+            ? { type: "image", props: { url } }
+            : { type: "file", props: { url, name } },
+        ] as PartialBlock[],
+        ref,
+        "after"
+      );
+    } catch {
+      const ref = editor.getTextCursorPosition().block;
+      editor.insertBlocks(
+        [{ type: "paragraph", content: [{ type: "link", href: url, content: name }] }] as PartialBlock[],
+        ref,
+        "after"
+      );
+    }
+    handleChange();
+  };
+
+  const toggle = (style: "bold" | "italic" | "underline" | "strike" | "code") => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    editor.toggleStyles({ [style]: true } as any);
+    handleChange();
+  };
+
+  const menuItems: MenuItem[] = [
+    { label: "굵게", icon: "𝐁", onClick: () => toggle("bold") },
+    { label: "기울임", icon: "𝑰", onClick: () => toggle("italic") },
+    { label: "밑줄", icon: "U̲", onClick: () => toggle("underline") },
+    { label: "취소선", icon: "S̶", onClick: () => toggle("strike") },
+    { label: "인라인 코드", icon: "</>", onClick: () => toggle("code") },
+    { label: "이미지 첨부", icon: "🖼️", onClick: () => insertAttachment("image") },
+    { label: "파일 첨부", icon: "📎", onClick: () => insertAttachment("file") },
+  ];
+
+  const onCtx = (e: ReactMouseEvent) => {
+    e.preventDefault();
+    setCtx({ x: e.clientX, y: e.clientY });
+  };
+
   return (
     <>
       <div className="export-bar">
@@ -165,7 +227,12 @@ function EditorBody({
         <button onClick={() => doExport("pdf")}>PDF</button>
         <button onClick={() => setShowHistory(true)}>🕘 기록</button>
       </div>
-      <BlockNoteView editor={editor} theme={theme} onChange={handleChange} />
+      <div onContextMenu={onCtx}>
+        <BlockNoteView editor={editor} theme={theme} onChange={handleChange} />
+      </div>
+      {ctx && (
+        <ContextMenu x={ctx.x} y={ctx.y} items={menuItems} onClose={() => setCtx(null)} />
+      )}
       {showHistory && (
         <VersionHistoryModal
           pageId={pageId}

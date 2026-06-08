@@ -55,7 +55,7 @@ export function Lock({ onUnlock }: { onUnlock: () => void }) {
   return (
     <div className="lock">
       <div style={{ fontSize: 48 }}>🔒</div>
-      <h2>{first ? "DeskNote 비밀번호 설정" : "DeskNote 잠금 해제"}</h2>
+      <h2>{first ? "D-Note 비밀번호 설정" : "D-Note 잠금 해제"}</h2>
       <p>
         {first
           ? "이 비밀번호로 데이터 접근이 보호됩니다. 분실 시 복구할 수 없으니 안전하게 보관하세요."

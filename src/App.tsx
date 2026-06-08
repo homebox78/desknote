@@ -179,7 +179,7 @@ function Workspace() {
     <div className="root-col">
       <Titlebar
         icon={cur ? cur.icon || "📄" : "🗒️"}
-        title={cur ? cur.title || "제목 없음" : "DeskNote"}
+        title={cur ? cur.title || "제목 없음" : "D-Note"}
         pinned={pinned}
         onTogglePin={togglePin}
       />

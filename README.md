@@ -1,124 +1,123 @@
-# DeskNote
+# D-Note (디-노트)
 
-오프라인 전용 · 암호화 · Notion 스타일 데스크탑 노트 앱
-(Tauri 2 + React 19 + BlockNote + SQLite)
+오프라인 전용 · 암호화 · Notion 스타일 데스크탑 노트 / 문서 / 데이터베이스 앱
+**v1.2.0** · Tauri 2 + React 19 + BlockNote + SQLite
+
+> 모든 데이터는 사용자 PC에만 저장되고 외부 네트워크 통신을 하지 않는 것이 제1원칙입니다.
+> (노션 직접 업로드만 사용자가 명시적으로 실행할 때, 노션 도메인으로만 예외 통신)
 
 ---
 
-## 무엇이 들어있나
+## 기능
 
-| 기능 | 구현 |
-| --- | --- |
-| Notion 동일 디자인(색·폰트·여백) | `src/styles.css` |
-| 블록 에디터(슬래시 `/`, 드래그, 리치텍스트) | BlockNote |
-| 계층형 페이지 트리(펼침/접기, 하위 추가) | `src/components/Sidebar.tsx` |
-| 즐겨찾기 · 우클릭 메뉴(복제/삭제/하위추가) | `src/components/ContextMenu.tsx`, `App.tsx` |
-| 휴지통(복구 / 완전 삭제) | `src/components/TrashModal.tsx` |
-| 전문 검색 모달(⌘K / Ctrl+K, FTS5) | `src/components/SearchModal.tsx` |
-| 600ms 디바운스 자동 저장 + 검색 인덱싱 | `src/components/PageView.tsx`, `src/lib/db.ts` |
-| 이미지 로컬 업로드(외부 전송 0) | `src/lib/upload.ts`, Rust `save_asset` |
-| Markdown / HTML / PDF export | `src/lib/export.ts` |
-| 다크 / 라이트 테마 | `App.tsx` (localStorage 저장) |
-| 마스터 비밀번호 잠금 | Stronghold + Argon2id (`Lock.tsx`, `lib.rs`) |
-| 외부 네트워크 완전 차단 | CSP `connect-src 'none'` (`tauri.conf.json`) |
-| 설치형 exe(NSIS / MSI) | Tauri 번들러 |
+| 영역 | 기능 | 상태 |
+| --- | --- | --- |
+| 페이지 | 무한 중첩 트리(펼침/접기), 생성·복제·삭제·복구, 즐겨찾기 | ✅ |
+| 에디터 | BlockNote 블록 에디터(슬래시 `/`·마크다운 단축·드래그·리치텍스트) | ✅ |
+| 저장 | 600ms 디바운스 자동 저장(블록 JSON + 검색용 평문) | ✅ |
+| 검색 | SQLite FTS5 전문 검색, ⌘/Ctrl+K 모달 | ✅ |
+| 미디어 | 이미지·파일 로컬 `assets` 저장 (외부 전송 0) | ✅ |
+| 데이터베이스 | **표 · 보드(칸반·드래그) · 갤러리 · 캘린더** 뷰 | ✅ |
+| 속성 타입 | 텍스트·숫자·선택·다중선택·날짜·체크박스·URL (선택 옵션 즉석 생성) | ✅ |
+| 내보내기 | Markdown · HTML · PDF · 데이터베이스 CSV | ✅ |
+| 가져오기 | Markdown · Word(.docx) · CSV → 페이지/데이터베이스 | ✅ |
+| 버전 기록 | 저장 시점 스냅샷(~3분 간격, 최근 50개) · 이전 버전 복원 🕘 | ✅ |
+| 백업 | 날짜별 DB 자동 백업(하루 1회) `backups/desknote-<날짜>.db` | ✅ |
+| 노션 연동 | ① 가져오기용 ZIP 내보내기 ② 노션 API 직접 업로드 | ✅ |
+| 보안 | 마스터 비밀번호 잠금(Stronghold + Argon2id), CSP `connect-src 'none'` | ✅ |
+| 디자인 | Notion 동일 톤 · Pretendard 폰트 · 다크/라이트 · 전체폭 본문 | ✅ |
+| 창 | 커스텀 타이틀바(압정 📌 항상 위 고정 · 최소화 · 최대화 · 닫기) | ✅ |
+| 빌드 | 설치형 `.exe`(NSIS) / `.msi` | ✅ |
 
 데이터 위치(Windows): `%APPDATA%\com.desknote.app\`
-- `desknote.db` — 모든 페이지/본문 (SQLite)
-- `assets/` — 업로드한 이미지
-- `vault.hold` — 비밀번호 검증용 암호화 금고(Stronghold)
+- `desknote.db` — 모든 페이지/본문/데이터베이스 (SQLite)
+- `vault.hold` — 비밀번호 검증용 암호화 금고 (Stronghold)
+- `assets/` — 업로드한 이미지·첨부
+- `backups/` — 날짜별 DB 스냅샷
+
+> 표시 이름은 D-Note지만 내부 식별자/DB 파일명은 `desknote`로 유지합니다(기존 데이터 호환을 위해). 폴더 경로가 `com.desknote.app`인 것은 정상입니다.
 
 ---
 
-## 1. 사전 준비 (한 번만)
+## 빌드 & 실행
 
-프론트엔드는 이미 빌드 확인을 마쳤습니다. **데스크탑 앱으로 컴파일하려면 Rust 툴체인이 필요합니다.**
+사전 준비(한 번만): **Rust**(rustup), **Visual Studio C++ Build Tools**("C++를 사용한 데스크톱 개발" 워크로드), **WebView2 런타임**(Win11 기본 포함). 자세한 절차는 아래 "사전 준비" 참고.
 
-1. **Rust** — https://rustup.rs 에서 `rustup` 설치 후 터미널 재시작
-   (`rustc --version` 으로 확인)
-2. **Microsoft C++ Build Tools** — https://visualstudio.microsoft.com/visual-cpp-build-tools/
-   설치 시 **"C++를 사용한 데스크톱 개발"** 워크로드 선택 (MSVC 링커용)
-3. **WebView2 런타임** — Windows 11에는 기본 포함. 없으면
-   https://developer.microsoft.com/microsoft-edge/webview2/ 에서 설치
+```bash
+npm install            # 의존성
+npm run tauri dev      # 개발 실행
+npm run tauri build    # 설치형 빌드
+```
 
-Node 의존성은 이미 설치되어 있습니다(`node_modules`). 새로 받았다면 `npm install`.
+빌드 산출물:
+- `src-tauri/target/release/bundle/nsis/D-Note_1.2.0_x64-setup.exe`
+- `src-tauri/target/release/bundle/msi/D-Note_1.2.0_x64_en-US.msi`
+
+> 개발 모드 주의: 보안 CSP(`connect-src 'none'`)로 Vite HMR 웹소켓이 막혀 자동 새로고침이 동작하지 않습니다. 코드 수정 후 창에서 **Ctrl+R**로 새로고침하세요.
 
 ---
 
-## 2. 개발 실행
+## 노션으로 데이터 옮기기
 
-```bash
-npm run tauri dev
-```
+### ① 가져오기용 ZIP 내보내기 (권장 · 완전 오프라인)
+사이드바 **📤 노션으로 내보내기 (ZIP)** → 전체 페이지가 중첩 Markdown(+데이터베이스 CSV) ZIP으로 생성됩니다. 노션에서 **설정 → 가져오기 → Markdown & CSV**로 그 ZIP을 업로드하세요. 토큰 불필요, 네트워크 0, 계층·서식 보존.
 
-> 참고: 보안을 위해 CSP에 `connect-src 'none'` 을 적용했기 때문에 개발 모드에서
-> Vite HMR(웹소켓)이 차단되어 자동 새로고침이 동작하지 않습니다. 코드 수정 후
-> 창에서 **Ctrl+R** 로 새로고침하세요. HMR이 꼭 필요하면 개발 중에만
-> `src-tauri/tauri.conf.json` 의 `connect-src 'none'` 을
-> `connect-src ws://localhost:1421` 로 잠시 바꿨다가 배포 전 되돌리면 됩니다.
+### ② 노션 API 직접 업로드 (옵션)
+사이드바 **🔗 노션에 직접 업로드 (API)** →
+1. notion.so/my-integrations 에서 **내부 통합** 생성 → 시크릿 토큰(`ntn_…`/`secret_…`) 복사
+2. 노션에서 대상(부모) 페이지 열기 → ⋯ → **연결**에 그 통합 추가 → 페이지 URL 복사
+3. 모달에 토큰·URL 입력 → **업로드 시작** (페이지 계층 그대로 생성)
 
-## 3. 설치형 exe 빌드
-
-```bash
-npm run tauri build
-```
-
-생성물:
-`src-tauri/target/release/bundle/nsis/DeskNote_1.0.0_x64-setup.exe`
-(그리고 `bundle/msi/…msi`)
+이 호출은 **Rust(tauri-plugin-http)를 통해 `api.notion.com`으로만** 나갑니다 — 웹뷰 CSP는 `connect-src 'none'`을 유지하므로 앱이 임의 외부로 새지 않습니다.
+한계: 데이터베이스 페이지는 건너뜀(노션 DB는 ①의 CSV로 이전), 이미지는 로컬 파일이라 제외됩니다.
 
 ---
 
 ## 보안 설계 (4계층)
+1. **네트워크 차단** — CSP `connect-src 'none'`. 웹뷰는 외부로 어떤 요청도 못 보냄. 업데이터·텔레메트리 없음.
+2. **접근 잠금** — 최초 실행 시 마스터 비밀번호 설정, 이후 잠금 해제. Stronghold 스냅샷은 그 비밀번호로만 복호화.
+3. **키 파생** — Argon2id로 비밀번호 → 32바이트 키.
+4. **로컬 전용 I/O** — 파일 쓰기/이미지 저장/백업/가져오기를 Rust 명령으로 처리해 웹뷰 파일시스템 권한을 닫아둠. 노션 API는 스코프로 노션 도메인만 허용.
 
-1. **네트워크 차단** — CSP `connect-src 'none'`. WebView가 외부로 어떤 요청도
-   보낼 수 없음. 업데이터·텔레메트리 없음 → 완전 오프라인.
-2. **접근 잠금** — 실행 시 마스터 비밀번호. Stronghold 스냅샷을 해당
-   비밀번호로만 복호화할 수 있어 틀리면 진입 불가.
-3. **키 파생** — Argon2id 로 비밀번호 → 32바이트 키 (`src-tauri/src/lib.rs`).
-4. **로컬 전용 I/O** — 파일 쓰기/이미지 저장을 Rust 명령으로 처리해
-   WebView의 파일시스템 권한(fs 스코프)을 열지 않음.
+---
+
+## 사전 준비 (한 번만)
+1. **Rust** — https://rustup.rs (`rustc --version` 확인)
+2. **MSVC C++ Build Tools** — https://visualstudio.microsoft.com/visual-cpp-build-tools/ → "C++를 사용한 데스크톱 개발" 워크로드
+3. **WebView2 런타임** — Windows 11 기본 포함, 없으면 Microsoft Edge WebView2 설치
 
 ---
 
 ## 알아둘 점 / 다음 단계
-
-- **PDF 한글**: jsPDF 기본 폰트는 라틴 전용이라 한글이 깨질 수 있습니다.
-  한글 PDF가 필요하면 NanumGothic 등 CJK TTF를 base64로 `addFont()` 등록하세요
-  (`src/lib/export.ts`의 주석 참고). HTML/Markdown export는 한글 정상.
-- **저장 암호화 강화**: 현재는 Stronghold로 키·접근을 보호합니다. DB 파일 자체를
-  암호화하려면 SQLCipher 연동을 추가할 수 있습니다.
-- **DB 뷰(테이블/칸반)**: 스키마(`db_tables`/`db_columns`/`db_rows`)는 마이그레이션
-  v2에 준비돼 있으며 UI는 후속 작업으로 붙일 수 있습니다.
-- 데이터 폴더(`%APPDATA%\com.desknote.app\`)를 주기적으로 백업하고, 배포 exe에
-  코드 서명을 적용하면 Windows SmartScreen 경고를 줄일 수 있습니다.
+- **PDF 한글**: jsPDF 기본 폰트는 라틴 전용이라 PDF 내보내기 시 한글이 깨질 수 있습니다(HTML·Markdown·노션 연동은 정상). 한글 PDF가 필요하면 CJK 폰트를 `addFont()`로 등록하세요(`src/lib/export.ts` 주석 참고).
+- **DB 암호화 강화(SQLCipher)**: 현재는 Stronghold로 키·접근을 보호합니다. DB 파일 자체 암호화는 후속 작업으로 검토 중입니다.
+- 배포 exe에 코드 서명을 적용하면 Windows SmartScreen 경고를 줄일 수 있습니다.
 
 ---
 
 ## 폴더 구조
-
 ```
-DeskNote/
-├─ index.html
-├─ package.json
+D-Note/
+├─ index.html · package.json · vite.config.ts
+├─ docs/DESIGN.md               ← 설계 문서(SDD)
 ├─ src/
-│  ├─ main.tsx
-│  ├─ App.tsx                  ← 워크스페이스 오케스트레이션
-│  ├─ styles.css               ← Notion 디자인 토큰
+│  ├─ App.tsx                   ← 워크스페이스 오케스트레이션
+│  ├─ styles.css                ← Notion 톤 · Pretendard
 │  ├─ lib/
-│  │  ├─ db.ts                 ← SQLite CRUD + FTS5 검색
-│  │  ├─ upload.ts             ← 이미지 로컬 저장
-│  │  └─ export.ts             ← MD / HTML / PDF
+│  │  ├─ db.ts                  ← SQLite CRUD · FTS5 · 버전 스냅샷
+│  │  ├─ dbviews.ts             ← 데이터베이스(표/보드/갤러리/캘린더)
+│  │  ├─ upload.ts              ← 이미지 로컬 저장
+│  │  ├─ export.ts              ← MD/HTML/PDF/CSV
+│  │  ├─ import.ts              ← MD/DOCX/CSV 가져오기
+│  │  ├─ version.ts             ← 버전 기록
+│  │  └─ notion.ts              ← 노션 ZIP 내보내기 + API 업로드
 │  └─ components/
-│     ├─ Lock.tsx              ← 비밀번호 잠금
-│     ├─ Sidebar.tsx           ← 페이지 트리
-│     ├─ PageView.tsx          ← 에디터 + 제목/아이콘 + export
-│     ├─ SearchModal.tsx       ← ⌘K 검색
-│     ├─ ContextMenu.tsx       ← 우클릭 메뉴
-│     └─ TrashModal.tsx        ← 휴지통
+│     ├─ Lock.tsx · Titlebar.tsx · Sidebar.tsx · PageView.tsx
+│     ├─ SearchModal.tsx · ContextMenu.tsx · TrashModal.tsx
+│     ├─ VersionHistoryModal.tsx · NotionUploadModal.tsx
+│     └─ database/ (DatabaseView · TableView · BoardView · GalleryView · CalendarView · cells)
 └─ src-tauri/
-   ├─ Cargo.toml               ← Rust 의존성
-   ├─ tauri.conf.json          ← CSP·창·번들 설정
-   ├─ capabilities/default.json← 플러그인 권한
-   └─ src/lib.rs               ← 마이그레이션 + 로컬 명령
+   ├─ src/lib.rs                ← 마이그레이션 · 로컬 파일 명령 · 백업 · 플러그인
+   ├─ Cargo.toml · tauri.conf.json
+   └─ capabilities/default.json ← 플러그인 권한 (http는 api.notion.com만)
 ```

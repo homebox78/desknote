@@ -72,7 +72,7 @@ export async function exportToNotionZip(): Promise<number> {
 
   const bytes = await zip.generateAsync({ type: "uint8array" });
   const path = await save({
-    defaultPath: "DeskNote-Notion.zip",
+    defaultPath: "D-Note-Notion.zip",
     filters: [{ name: "ZIP", extensions: ["zip"] }],
   });
   if (!path) return 0;

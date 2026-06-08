@@ -66,7 +66,7 @@ export function Sidebar(p: Props) {
   return (
     <aside className="sidebar">
       <div className="sb-brand">
-        <span>🗒️</span> DeskNote
+        <span>🗒️</span> D-Note
       </div>
 
       <div className="sb-item" onClick={p.onSearch}>

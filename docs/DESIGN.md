@@ -1,9 +1,9 @@
-# DeskNote 개발 문서 (Software Design Document)
+# D-Note 개발 문서 (Software Design Document)
 
 > 버전 1.0 · 데스크탑 설치형 Notion 스타일 앱
 
 ## 1. 문서 개요
-완전 오프라인으로 동작하는 데스크탑 설치형 노트/문서/데이터베이스 앱 DeskNote의 개발 명세를 정의한다. 모든 데이터는 사용자 PC에만 저장되며 외부 네트워크 통신을 하지 않는 것을 제1원칙으로 한다. 데스크탑 단독 환경에서 실제 구현 가능한 기능만을 범위로 하며, 실시간 협업·클라우드 공유·웹 게시·외부 API 연동 등 서버 인프라가 필수인 기능은 제외한다.
+완전 오프라인으로 동작하는 데스크탑 설치형 노트/문서/데이터베이스 앱 D-Note의 개발 명세를 정의한다. 모든 데이터는 사용자 PC에만 저장되며 외부 네트워크 통신을 하지 않는 것을 제1원칙으로 한다. 데스크탑 단독 환경에서 실제 구현 가능한 기능만을 범위로 하며, 실시간 협업·클라우드 공유·웹 게시·외부 API 연동 등 서버 인프라가 필수인 기능은 제외한다.
 
 ## 2. 목표 및 비범위
 **목표**: 인터넷 없이 Notion 수준의 문서 작성·데이터베이스 관리 제공, 데이터를 PC에 안전하게 암호화 저장, 단일 설치 파일(.exe/.msi)로 배포.
@@ -24,7 +24,7 @@
 3계층. UI 레이어(React + BlockNote)는 사이드바·페이지·블록 편집·DB 뷰 렌더링. 로직 레이어(Rust)는 CRUD·파일 저장·암호화 키 검증·export 처리, Tauri IPC(invoke)로 UI와 통신. 데이터 레이어는 앱 데이터 디렉터리의 SQLite 파일 + assets 폴더.
 
 ```
-DeskNote.exe
+D-Note.exe
   WebView (React + BlockNote)        ← UI
         │ Tauri IPC
   Rust 백엔드 (sql / stronghold / fs) ← 로직
@@ -120,7 +120,7 @@ CSP `default-src 'self'; connect-src 'none'; img-src 'self' asset: data: blob:` 
 | 확장(선택) | LAN 읽기전용 공유, 로컬 LLM(Ollama) AI | 2.0 |
 
 ## 10. 빌드 & 배포
-개발: `npm run tauri dev` / 배포: `npm run tauri build`. 산출물 `src-tauri/target/release/bundle/nsis/DeskNote_x.x.x_x64-setup.exe`. SmartScreen 경고 감소를 위해 코드 사이닝 권장.
+개발: `npm run tauri dev` / 배포: `npm run tauri build`. 산출물 `src-tauri/target/release/bundle/nsis/D-Note_x.x.x_x64-setup.exe`. SmartScreen 경고 감소를 위해 코드 사이닝 권장.
 
 ## 11. 테스트 항목
 오프라인 전 기능 동작, 네트워크 모니터 외부 요청 0건, 비밀번호 오류 시 차단, 재시작 후 데이터 보존, 대용량 페이지(수천 블록) 성능, 검색 정확도, export 무결성.

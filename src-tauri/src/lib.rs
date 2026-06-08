@@ -1,4 +1,4 @@
-// DeskNote — Rust backend
+// D-Note — Rust backend
 // All persistence and file I/O happens locally. No code path here performs a
 // network request, which together with the strict CSP guarantees offline-only
 // operation.
@@ -208,5 +208,5 @@ pub fn run() {
             backup_db
         ])
         .run(tauri::generate_context!())
-        .expect("error while running DeskNote");
+        .expect("error while running D-Note");
 }

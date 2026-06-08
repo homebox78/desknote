@@ -10,9 +10,12 @@ import * as db from "../lib/db";
 import { uploadFile } from "../lib/upload";
 import { exportMarkdown, exportHTML, exportPDF } from "../lib/export";
 import { getVersionContent } from "../lib/version";
+import { markStickyOpen, getSticky } from "../lib/sticky";
+import { openStickyWindow } from "../lib/stickyWindow";
 import { DatabaseView } from "./database/DatabaseView";
 import { VersionHistoryModal } from "./VersionHistoryModal";
 import { ContextMenu, MenuItem } from "./ContextMenu";
+import { Icon } from "./icons";
 
 interface Props {
   page: db.Page;
@@ -219,13 +222,30 @@ function EditorBody({
     setCtx({ x: e.clientX, y: e.clientY });
   };
 
+  const openAsSticky = async () => {
+    await markStickyOpen(pageId);
+    const s = await getSticky(pageId);
+    await openStickyWindow(pageId, s ?? undefined);
+  };
+
   return (
     <>
       <div className="export-bar">
-        <button onClick={() => doExport("md")}>Markdown</button>
-        <button onClick={() => doExport("html")}>HTML</button>
-        <button onClick={() => doExport("pdf")}>PDF</button>
-        <button onClick={() => setShowHistory(true)}>🕘 기록</button>
+        <button className="dn-chip" onClick={() => doExport("md")}>
+          <Icon.download size={14} /> Markdown
+        </button>
+        <button className="dn-chip" onClick={() => doExport("html")}>
+          <Icon.download size={14} /> HTML
+        </button>
+        <button className="dn-chip" onClick={() => doExport("pdf")}>
+          <Icon.download size={14} /> PDF
+        </button>
+        <button className="dn-chip" onClick={() => setShowHistory(true)}>
+          <Icon.history size={14} /> 기록
+        </button>
+        <button className="dn-chip" onClick={openAsSticky}>
+          <Icon.note size={14} /> 포스트잇
+        </button>
       </div>
       <div onContextMenu={onCtx}>
         <BlockNoteView editor={editor} theme={theme} onChange={handleChange} />

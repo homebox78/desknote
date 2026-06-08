@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactElement } from "react";
 import * as dv from "../../lib/dbviews";
 import { exportCsv, toCsv } from "../../lib/export";
+import { Icon, type IconProps } from "../icons";
 import { TableView } from "./TableView";
 import { BoardView } from "./BoardView";
 import { GalleryView } from "./GalleryView";
 import { CalendarView } from "./CalendarView";
 import { RowDetailModal } from "./RowDetailModal";
 
-const VIEWS: { kind: dv.ViewKind; label: string; icon: string }[] = [
-  { kind: "table", label: "표", icon: "▦" },
-  { kind: "board", label: "보드", icon: "▤" },
-  { kind: "gallery", label: "갤러리", icon: "▥" },
-  { kind: "calendar", label: "캘린더", icon: "▦" },
+const VIEWS: { kind: dv.ViewKind; label: string; Ic: (p: IconProps) => ReactElement }[] = [
+  { kind: "table", label: "표", Ic: Icon.table },
+  { kind: "board", label: "보드", Ic: Icon.board },
+  { kind: "gallery", label: "갤러리", Ic: Icon.gallery },
+  { kind: "calendar", label: "캘린더", Ic: Icon.calendar },
 ];
 
 export interface ViewProps {
@@ -124,13 +126,13 @@ export function DatabaseView({ pageId, title }: { pageId: string; title?: string
             className={`db-view-tab ${table.view === v.kind ? "active" : ""}`}
             onClick={() => changeView(v.kind)}
           >
-            <span className="db-view-icon">{v.icon}</span> {v.label}
+            <v.Ic size={15} /> {v.label}
           </button>
         ))}
         <div className="db-toolbar-spacer" />
         <span className="db-count">{rows.length}개</span>
         <button className="db-view-tab" onClick={exportToCsv} title="CSV로 내보내기">
-          ⬇ CSV
+          <Icon.download size={14} /> CSV
         </button>
       </div>
 

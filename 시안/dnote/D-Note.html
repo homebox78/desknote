@@ -716,6 +716,51 @@ input { font-family: inherit; }
 .dn-picker-go:disabled { opacity: .4; cursor: default; }
 
 
+/* ===== Desktop sticky notes ===== */
+.dn-sticky-layer { position: absolute; inset: 0; pointer-events: none; z-index: 60; }
+.dn-sticky {
+  position: absolute; width: 264px; border-radius: 5px; pointer-events: auto;
+  display: flex; flex-direction: column; font-family: inherit;
+  box-shadow: 0 12px 30px -8px rgba(18,18,28,.42), 0 2px 6px rgba(0,0,0,.15);
+}
+.dn-sticky.is-pinned { box-shadow: 0 16px 38px -8px rgba(18,18,28,.5), 0 0 0 1.5px rgba(0,0,0,.1); }
+.dn-sticky-bar { display: flex; align-items: center; gap: 5px; padding: 5px 6px 5px 8px; cursor: grab; position: relative; border-radius: 5px 5px 0 0; }
+.dn-sticky-bar:active { cursor: grabbing; }
+.dn-sticky-title { flex: 1; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .82; }
+.dn-sticky-actions { display: flex; align-items: center; gap: 0; }
+.dn-sticky-btn { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 5px; color: inherit; opacity: .6; }
+.dn-sticky-btn:hover { opacity: 1; background: rgba(0,0,0,.09); }
+.dn-sticky-palette { position: absolute; top: 31px; right: 6px; display: flex; gap: 5px; padding: 6px; background: #fff; border-radius: 9px; box-shadow: 0 8px 22px rgba(0,0,0,.22); z-index: 5; }
+.dn-sticky-dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.12) inset; }
+.dn-sticky-dot.is-on { box-shadow: 0 0 0 2px #2b2d31; }
+.dn-sticky-body { flex: 1; border: none; outline: none; background: transparent; resize: none; padding: 6px 13px; font-size: 13.5px; line-height: 1.55; font-family: inherit; min-height: 116px; }
+.dn-sticky-body::placeholder { color: currentColor; opacity: .4; }
+.dn-sticky-foot { display: flex; align-items: center; justify-content: space-between; padding: 5px 13px 10px; font-size: 10.5px; font-weight: 600; }
+.dn-sticky-sync { display: flex; align-items: center; gap: 5px; }
+.dn-sticky-syncdot { width: 6px; height: 6px; border-radius: 50%; }
+.dn-sticky-syncdot.is-busy { animation: dn-pulse 1s infinite; }
+@keyframes dn-pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+.dn-sticky-open { cursor: pointer; opacity: .85; white-space: nowrap; }
+.dn-sticky-open:hover { opacity: 1; text-decoration: underline; }
+
+/* memo page (sticky-linked) */
+.dn-memo-icon { color: var(--text-2); background: color-mix(in srgb, var(--text-3) 11%, transparent); }
+.dn-memo-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.dn-memo-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-2); background: color-mix(in srgb, var(--text-3) 12%, transparent); padding: 4px 10px; border-radius: 7px; }
+.dn-memo-sync { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-3); font-weight: 500; }
+.dn-memo-syncdot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: dn-pulse 1.4s infinite; }
+.dn-memo-editor { width: 100%; min-height: 340px; border: none; outline: none; background: transparent; resize: none; font-family: inherit; font-size: calc(16px * var(--fs, 1)); line-height: 1.8; color: var(--text); }
+.dn-memo-editor::placeholder { color: var(--text-3); }
+
+/* sidebar: new-sticky row + context menu */
+.dn-srow.is-accent { color: var(--text-2); }
+.dn-srow.is-accent .dn-srow-ic { color: var(--accent); }
+.dn-ctxmenu { position: fixed; z-index: 200; background: var(--modal-bg); border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: 0 12px 32px -8px rgba(15,18,30,.4); padding: 5px; min-width: 188px; }
+.dn-ctxmenu-item { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 11px; border-radius: 7px; font-size: 13px; font-weight: 500; color: var(--text); text-align: left; }
+.dn-ctxmenu-item:hover:not(:disabled) { background: var(--hover); }
+.dn-ctxmenu-item:disabled { color: var(--text-3); cursor: default; }
+.dn-ctxmenu-item svg { color: var(--text-3); flex: 0 0 auto; }
+
 .dn-doc-scroll::-webkit-scrollbar, .dn-sidebar::-webkit-scrollbar,
 .dn-board::-webkit-scrollbar, .dn-search-body::-webkit-scrollbar,
 .dn-trash-body::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -732,14 +777,15 @@ input { font-family: inherit; }
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <script type="text/babel" src="tweaks-panel.jsx"></script>
-<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="icons.jsx?v=6"></script>
 <script type="text/babel" src="data.jsx"></script>
-<script type="text/babel" src="components.jsx"></script>
-<script type="text/babel" src="editor.jsx"></script>
+<script type="text/babel" src="components.jsx?v=5"></script>
+<script type="text/babel" src="editor.jsx?v=5"></script>
 <script type="text/babel" src="database.jsx"></script>
 <script type="text/babel" src="modals.jsx"></script>
-<script type="text/babel" src="settings.jsx?v=3"></script>
-<script type="text/babel" src="onboarding.jsx?v=4"></script>
-<script type="text/babel" src="app.jsx"></script>
+<script type="text/babel" src="settings.jsx?v=5"></script>
+<script type="text/babel" src="onboarding.jsx?v=5"></script>
+<script type="text/babel" src="sticky.jsx?v=5"></script>
+<script type="text/babel" src="app.jsx?v=5"></script>
 </body>
 </html>

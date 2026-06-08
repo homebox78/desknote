@@ -14,7 +14,6 @@ import { markStickyOpen, getSticky } from "../lib/sticky";
 import { openStickyWindow } from "../lib/stickyWindow";
 import { DatabaseView } from "./database/DatabaseView";
 import { VersionHistoryModal } from "./VersionHistoryModal";
-import { ContextMenu, MenuItem } from "./ContextMenu";
 import { Icon } from "./icons";
 
 interface Props {
@@ -201,21 +200,25 @@ function EditorBody({
     handleChange();
   };
 
-  const toggle = (style: "bold" | "italic" | "underline" | "strike" | "code") => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    editor.toggleStyles({ [style]: true } as any);
+  const toggle = (style: "bold" | "italic" | "strike" | "code") => {
+    editor.toggleStyles({ [style]: true } as Record<string, boolean>);
     handleChange();
+    setCtx(null);
   };
 
-  const menuItems: MenuItem[] = [
-    { label: "굵게", icon: "𝐁", onClick: () => toggle("bold") },
-    { label: "기울임", icon: "𝑰", onClick: () => toggle("italic") },
-    { label: "밑줄", icon: "U̲", onClick: () => toggle("underline") },
-    { label: "취소선", icon: "S̶", onClick: () => toggle("strike") },
-    { label: "인라인 코드", icon: "</>", onClick: () => toggle("code") },
-    { label: "이미지 첨부", icon: "🖼️", onClick: () => insertAttachment("image") },
-    { label: "파일 첨부", icon: "📎", onClick: () => insertAttachment("file") },
-  ];
+  const convert = (type: string, level?: number) => {
+    const block = editor.getTextCursorPosition().block;
+    const update = level ? { type, props: { level } } : { type };
+    editor.updateBlock(block, update as unknown as PartialBlock);
+    handleChange();
+    setCtx(null);
+  };
+
+  const blockAction = (fn: () => void) => {
+    fn();
+    handleChange();
+    setCtx(null);
+  };
 
   const onCtx = (e: ReactMouseEvent) => {
     e.preventDefault();
@@ -250,9 +253,131 @@ function EditorBody({
       <div onContextMenu={onCtx}>
         <BlockNoteView editor={editor} theme={theme} onChange={handleChange} />
       </div>
-      {ctx && (
-        <ContextMenu x={ctx.x} y={ctx.y} items={menuItems} onClose={() => setCtx(null)} />
-      )}
+      {ctx &&
+        (() => {
+          const block = editor.getTextCursorPosition().block;
+          const styles = editor.getActiveStyles() as Record<string, unknown>;
+          const isT = (t: string, lvl?: number) =>
+            t === "heading"
+              ? block.type === "heading" &&
+                (block.props as { level?: number }).level === lvl
+              : block.type === t;
+          const left = Math.min(ctx.x, window.innerWidth - 232);
+          const top = Math.min(ctx.y, window.innerHeight - 440);
+          const dup = () => {
+            const b = editor.getTextCursorPosition().block;
+            editor.insertBlocks(
+              [{ type: b.type, props: b.props, content: b.content } as unknown as PartialBlock],
+              b,
+              "after"
+            );
+          };
+          const addBelow = () => {
+            const b = editor.getTextCursorPosition().block;
+            editor.insertBlocks([{ type: "paragraph" }] as PartialBlock[], b, "after");
+          };
+          return (
+            <>
+              <div
+                className="ctx-overlay"
+                onClick={() => setCtx(null)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setCtx(null);
+                }}
+              />
+              <div className="dn-blockmenu" style={{ left, top }}>
+                <div className="dn-bm-format">
+                  <button
+                    className={`dn-bm-fbtn ${styles.bold ? "is-on" : ""}`}
+                    onClick={() => toggle("bold")}
+                  >
+                    <b>B</b>
+                  </button>
+                  <button
+                    className={`dn-bm-fbtn ${styles.italic ? "is-on" : ""}`}
+                    onClick={() => toggle("italic")}
+                  >
+                    <i>I</i>
+                  </button>
+                  <button
+                    className={`dn-bm-fbtn ${styles.strike ? "is-on" : ""}`}
+                    onClick={() => toggle("strike")}
+                  >
+                    <s>S</s>
+                  </button>
+                  <button
+                    className={`dn-bm-fbtn ${styles.code ? "is-on" : ""}`}
+                    onClick={() => toggle("code")}
+                  >
+                    {"</>"}
+                  </button>
+                </div>
+                <div className="dn-bm-label">블록 전환</div>
+                <button className="dn-bm-item" onClick={() => convert("paragraph")}>
+                  <Icon.type size={15} /> 텍스트
+                  {isT("paragraph") && <Icon.check size={15} className="dn-bm-check" />}
+                </button>
+                <button className="dn-bm-item" onClick={() => convert("heading", 1)}>
+                  <Icon.hash size={15} /> 제목 1
+                  {isT("heading", 1) && <Icon.check size={15} className="dn-bm-check" />}
+                </button>
+                <button className="dn-bm-item" onClick={() => convert("heading", 2)}>
+                  <Icon.hash size={15} /> 제목 2
+                  {isT("heading", 2) && <Icon.check size={15} className="dn-bm-check" />}
+                </button>
+                <button className="dn-bm-item" onClick={() => convert("bulletListItem")}>
+                  <Icon.list size={15} /> 글머리 기호 목록
+                  {isT("bulletListItem") && <Icon.check size={15} className="dn-bm-check" />}
+                </button>
+                <button className="dn-bm-item" onClick={() => convert("quote")}>
+                  <Icon.quote size={15} /> 인용
+                  {isT("quote") && <Icon.check size={15} className="dn-bm-check" />}
+                </button>
+                <button className="dn-bm-item" onClick={() => convert("codeBlock")}>
+                  <Icon.code size={15} /> 코드
+                  {isT("codeBlock") && <Icon.check size={15} className="dn-bm-check" />}
+                </button>
+                <div className="dn-bm-sep" />
+                <button className="dn-bm-item" onClick={() => blockAction(addBelow)}>
+                  <Icon.plus size={15} /> 아래에 블록 추가
+                </button>
+                <button className="dn-bm-item" onClick={() => blockAction(dup)}>
+                  <Icon.copy size={15} /> 복제
+                </button>
+                <button
+                  className="dn-bm-item dn-bm-danger"
+                  onClick={() =>
+                    blockAction(() =>
+                      editor.removeBlocks([editor.getTextCursorPosition().block])
+                    )
+                  }
+                >
+                  <Icon.trash size={15} /> 삭제
+                </button>
+                <div className="dn-bm-sep" />
+                <button
+                  className="dn-bm-item"
+                  onClick={() => {
+                    setCtx(null);
+                    insertAttachment("image");
+                  }}
+                >
+                  <Icon.gallery size={15} /> 이미지 첨부
+                </button>
+                <button
+                  className="dn-bm-item"
+                  onClick={() => {
+                    setCtx(null);
+                    insertAttachment("file");
+                  }}
+                >
+                  <Icon.import size={15} /> 파일 첨부
+                </button>
+              </div>
+            </>
+          );
+        })()}
       {showHistory && (
         <VersionHistoryModal
           pageId={pageId}

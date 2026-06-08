@@ -176,6 +176,14 @@ export const Icon = {
   ),
   hash: P("M9 4L7 20M17 4l-2 16M5 9h14M4 15h14"),
   type: P("M5 6h14M5 6v-1M5 6v1M12 6v12M9 18h6"),
+  list: P("M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"),
+  quote: P(
+    "M7 7H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v-2M17 7h-2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v-2"
+  ),
+  code: P("M16 18l6-6-6-6M8 6l-6 6 6 6"),
+  copy: P(
+    "M9 9h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+  ),
   checkCircle: (p: IconProps) => (
     <Ic {...p}>
       <circle cx="12" cy="12" r="9" />

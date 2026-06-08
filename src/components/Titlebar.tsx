@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { LogoMark } from "./icons";
 
 /**
  * Custom window title bar. Because the native caption can't host a WebView
@@ -8,14 +9,12 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
  * consistent line-icon style. The bar itself is the drag region.
  */
 export function Titlebar({
-  icon,
   title,
   pinned,
   onTogglePin,
   onSettings,
   showPin = true,
 }: {
-  icon: string;
   title: string;
   pinned: boolean;
   onTogglePin: () => void;
@@ -38,7 +37,7 @@ export function Titlebar({
   return (
     <div className="titlebar" data-tauri-drag-region>
       <div className="tb-left" data-tauri-drag-region>
-        <span className="tb-icon">{icon}</span>
+        <LogoMark size={18} />
         <span className="tb-title">{title}</span>
       </div>
       <div className="tb-controls">

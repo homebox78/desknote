@@ -1,5 +1,6 @@
 import type { MouseEvent } from "react";
 import * as db from "../lib/db";
+import { Icon, LogoMark } from "./icons";
 
 interface Props {
   pages: db.Page[];
@@ -27,6 +28,7 @@ export function Sidebar(p: Props) {
     childrenOf(parentId).map((pg) => {
       const kids = childrenOf(pg.id);
       const open = p.expanded.has(pg.id);
+      const PageIcon = pg.type === "db" ? Icon.database : Icon.doc;
       return (
         <div key={pg.id}>
           <div
@@ -42,9 +44,11 @@ export function Sidebar(p: Props) {
                 p.onToggle(pg.id);
               }}
             >
-              {kids.length ? (open ? "▼" : "▶") : ""}
+              {kids.length ? (open ? "▾" : "▸") : ""}
             </span>
-            <span className="icon">{pg.icon || "📄"}</span>
+            <span className="icon">
+              <PageIcon size={16} />
+            </span>
             <span className="label">{pg.title || "제목 없음"}</span>
             <span
               className="add"
@@ -54,7 +58,7 @@ export function Sidebar(p: Props) {
                 p.onAdd(pg.id);
               }}
             >
-              ＋
+              <Icon.plus size={15} />
             </span>
           </div>
           {open && renderTree(pg.id, depth + 1)}
@@ -65,16 +69,21 @@ export function Sidebar(p: Props) {
   return (
     <aside className="sidebar">
       <div className="sb-brand">
-        <span>🗒️</span> D-Note
+        <LogoMark size={24} />
+        <span>D-Note</span>
       </div>
 
       <div className="sb-item" onClick={p.onSearch}>
-        <span className="icon">🔍</span>
+        <span className="icon">
+          <Icon.search size={16} />
+        </span>
         <span className="label">검색</span>
         <span className="shortcut">⌘K</span>
       </div>
       <div className="sb-item" onClick={p.onTrash}>
-        <span className="icon">🗑️</span>
+        <span className="icon">
+          <Icon.trash size={16} />
+        </span>
         <span className="label">휴지통</span>
       </div>
 
@@ -89,7 +98,7 @@ export function Sidebar(p: Props) {
               onContextMenu={(e) => p.onMenu(e, pg)}
             >
               <span className="icon" style={{ marginLeft: 4 }}>
-                {pg.icon || "📄"}
+                <Icon.star size={16} />
               </span>
               <span className="label">{pg.title || "제목 없음"}</span>
             </div>
@@ -101,27 +110,39 @@ export function Sidebar(p: Props) {
       {renderTree(null)}
 
       <div className="sb-item" onClick={() => p.onAdd(null)}>
-        <span className="icon">＋</span>
+        <span className="icon">
+          <Icon.plus size={16} />
+        </span>
         <span className="label">새 페이지</span>
       </div>
       <div className="sb-item" onClick={() => p.onAddDatabase(null)}>
-        <span className="icon">🗃️</span>
+        <span className="icon">
+          <Icon.database size={16} />
+        </span>
         <span className="label">새 데이터베이스</span>
       </div>
-      <div className="sb-item" onClick={p.onNewSticky}>
-        <span className="icon">📌</span>
+      <div className="sb-item sb-accent" onClick={p.onNewSticky}>
+        <span className="icon">
+          <Icon.note size={16} />
+        </span>
         <span className="label">새 포스트잇</span>
       </div>
       <div className="sb-item" onClick={p.onImport}>
-        <span className="icon">📥</span>
+        <span className="icon">
+          <Icon.import size={16} />
+        </span>
         <span className="label">가져오기 (MD/DOCX/CSV)</span>
       </div>
       <div className="sb-item" onClick={p.onExportNotion}>
-        <span className="icon">📤</span>
+        <span className="icon">
+          <Icon.export size={16} />
+        </span>
         <span className="label">노션으로 내보내기 (ZIP)</span>
       </div>
       <div className="sb-item" onClick={p.onNotionUpload}>
-        <span className="icon">🔗</span>
+        <span className="icon">
+          <Icon.link size={16} />
+        </span>
         <span className="label">노션에 직접 업로드 (API)</span>
       </div>
     </aside>

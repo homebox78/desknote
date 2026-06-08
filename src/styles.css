@@ -3,34 +3,42 @@
    Colors, fonts and spacing mirror Notion's actual values.
    ============================================================ */
 :root {
-  --nt-text: rgb(55, 53, 47);
-  --nt-text-light: rgba(55, 53, 47, 0.65);
-  --nt-text-faint: rgba(55, 53, 47, 0.4);
+  --nt-text: #1d1e21;
+  --nt-text-light: #6b6c70;
+  --nt-text-faint: #9b9c9f;
   --nt-bg: #ffffff;
-  --nt-sidebar-bg: #f7f7f5;
-  --nt-hover: rgba(55, 53, 47, 0.08);
-  --nt-active: rgba(55, 53, 47, 0.06);
-  --nt-border: rgba(55, 53, 47, 0.09);
-  --nt-blue: #2383e2;
-  --nt-red: #e03e3e;
-  --nt-shadow: rgba(15, 15, 15, 0.15);
-  --nt-placeholder: rgba(55, 53, 47, 0.15);
+  --nt-sidebar-bg: #f7f7f8;
+  --nt-hover: #efeff0;
+  --nt-active: #ebebed;
+  --nt-border: #ebebed;
+  --nt-border-strong: #dededf;
+  --nt-card: #ffffff;
+  --nt-blue: #232427; /* accent (monochrome) */
+  --nt-on-accent: #ffffff;
+  --nt-red: #c5413f;
+  --nt-shadow: rgba(15, 18, 30, 0.32);
+  --nt-placeholder: #bdbdc0;
   --nt-font: "Pretendard Variable", Pretendard, ui-sans-serif, -apple-system,
     BlinkMacSystemFont, "Segoe UI", "Apple Color Emoji", "Segoe UI Emoji", Arial,
     sans-serif;
 }
 
 [data-theme="dark"] {
-  --nt-text: rgba(255, 255, 255, 0.9);
-  --nt-text-light: rgba(255, 255, 255, 0.45);
-  --nt-text-faint: rgba(255, 255, 255, 0.3);
-  --nt-bg: #191919;
-  --nt-sidebar-bg: #202020;
-  --nt-hover: rgba(255, 255, 255, 0.055);
-  --nt-active: rgba(255, 255, 255, 0.03);
-  --nt-border: rgba(255, 255, 255, 0.094);
-  --nt-shadow: rgba(0, 0, 0, 0.5);
-  --nt-placeholder: rgba(255, 255, 255, 0.2);
+  --nt-text: #e8e8ea;
+  --nt-text-light: #9a9b9e;
+  --nt-text-faint: #6a6b6e;
+  --nt-bg: #1a1b1d;
+  --nt-sidebar-bg: #161719;
+  --nt-hover: #26262a;
+  --nt-active: #2e2f33;
+  --nt-border: #2a2a2d;
+  --nt-border-strong: #36363a;
+  --nt-card: #202023;
+  --nt-blue: #cdced2; /* accent on dark */
+  --nt-on-accent: #18191b;
+  --nt-red: #e06b6b;
+  --nt-shadow: rgba(0, 0, 0, 0.55);
+  --nt-placeholder: #4a4b4e;
 }
 
 * {
@@ -60,6 +68,44 @@ button,
 select,
 optgroup {
   font-family: inherit;
+}
+
+/* D-Note brand mark (accent square with the D glyph) */
+.dn-logo {
+  background: var(--nt-blue);
+  color: var(--nt-on-accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.06) inset;
+}
+
+/* Sidebar line-icon coloring (design refresh) */
+.sb-item,
+.tree-row {
+  border-radius: 7px;
+}
+.sb-item .icon,
+.tree-row .icon {
+  color: var(--nt-text-faint);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+}
+.sb-item:hover .icon,
+.tree-row:hover .icon {
+  color: var(--nt-text-light);
+}
+.tree-row.active .icon {
+  color: var(--nt-blue);
+}
+.sb-item.sb-accent .label,
+.sb-item.sb-accent .icon {
+  color: var(--nt-blue);
+}
+.tree-row .add {
+  color: var(--nt-text-faint);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .root-col {
@@ -126,8 +172,8 @@ optgroup {
   color: var(--nt-text);
 }
 .win-btn.close:hover {
-  background: #e81123;
-  color: #fff;
+  background: var(--nt-text);
+  color: var(--nt-bg);
 }
 .win-btn.pin.on {
   color: var(--nt-blue);
@@ -545,22 +591,67 @@ optgroup {
 .lock input:focus {
   border-color: var(--nt-blue);
 }
-.lock button {
+.lock > button {
   background: var(--nt-blue);
-  color: #fff;
+  color: var(--nt-on-accent);
   border: none;
-  padding: 10px 22px;
-  border-radius: 6px;
+  padding: 11px 24px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
 }
-.lock button:hover {
-  filter: brightness(1.05);
+.lock > button:hover {
+  filter: brightness(1.1);
+}
+.lock > button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  filter: none;
 }
 .lock .err {
   color: var(--nt-red);
   font-size: 13px;
+}
+.lock-badge {
+  margin-bottom: 20px;
+}
+.lock-field {
+  position: relative;
+  width: 280px;
+}
+.lock-field input {
+  width: 100%;
+  padding-right: 42px;
+  letter-spacing: 1px;
+}
+.lock-eye {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: var(--nt-text-faint);
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.lock-eye:hover {
+  color: var(--nt-text-light);
+  background: var(--nt-hover);
+}
+.lock-foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 26px;
+  font-size: 11.5px;
+  color: var(--nt-text-faint);
 }
 
 /* ── Sticky note window ────────────────────────────────── */
@@ -683,7 +774,7 @@ optgroup {
 }
 .set-seg button.on {
   background: var(--nt-blue);
-  color: #fff;
+  color: var(--nt-on-accent);
 }
 .set-row {
   display: flex;
@@ -749,7 +840,7 @@ optgroup {
 }
 .notion-upload-btn {
   background: var(--nt-blue);
-  color: #fff;
+  color: var(--nt-on-accent);
   border: none;
   padding: 9px 16px;
   border-radius: 6px;
@@ -1247,7 +1338,7 @@ optgroup {
   padding: 0 2px;
 }
 .cal-cell.today .cal-day {
-  color: #fff;
+  color: var(--nt-on-accent);
   background: var(--nt-blue);
   width: 20px;
   height: 20px;

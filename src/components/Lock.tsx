@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Stronghold } from "@tauri-apps/plugin-stronghold";
 import { invoke } from "@tauri-apps/api/core";
+import { Icon, LogoMark } from "./icons";
 
 const CLIENT = "desknote";
 
@@ -15,6 +16,7 @@ export function Lock({ onUnlock }: { onUnlock: () => void }) {
   const [err, setErr] = useState("");
   const [vaultPath, setVaultPath] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     invoke<{ path: string; exists: boolean }>("vault_status")
@@ -54,26 +56,42 @@ export function Lock({ onUnlock }: { onUnlock: () => void }) {
 
   return (
     <div className="lock">
-      <div style={{ fontSize: 48 }}>🔒</div>
+      <div className="lock-badge">
+        <LogoMark size={56} radius={18} />
+      </div>
       <h2>{first ? "D-Note 비밀번호 설정" : "D-Note 잠금 해제"}</h2>
       <p>
         {first
           ? "이 비밀번호로 데이터 접근이 보호됩니다. 분실 시 복구할 수 없으니 안전하게 보관하세요."
           : "마스터 비밀번호를 입력하세요"}
       </p>
-      <input
-        type="password"
-        autoFocus
-        placeholder="비밀번호"
-        value={pw}
-        disabled={busy || !vaultPath}
-        onChange={(e) => setPw(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && submit()}
-      />
+      <div className="lock-field">
+        <input
+          type={show ? "text" : "password"}
+          autoFocus
+          placeholder="비밀번호"
+          value={pw}
+          disabled={busy || !vaultPath}
+          onChange={(e) => setPw(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+        />
+        <button
+          type="button"
+          className="lock-eye"
+          title={show ? "숨기기" : "보기"}
+          onClick={() => setShow((s) => !s)}
+        >
+          {show ? <Icon.eyeOff size={18} /> : <Icon.eye size={18} />}
+        </button>
+      </div>
       {err && <div className="err">{err}</div>}
       <button onClick={submit} disabled={busy || !vaultPath}>
         {first ? "설정하고 시작" : "잠금 해제"}
       </button>
+      <div className="lock-foot">
+        <Icon.shield size={14} />
+        <span>오프라인 전용 · Argon2id 암호화 · 네트워크 차단</span>
+      </div>
     </div>
   );
 }

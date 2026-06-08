@@ -25,7 +25,7 @@ export default function App() {
   if (!unlocked) {
     return (
       <div className="root-col">
-        <Titlebar icon="🔒" title="D-Note" showPin={false} pinned={false} onTogglePin={() => {}} />
+        <Titlebar title="D-Note" showPin={false} pinned={false} onTogglePin={() => {}} />
         <div className="lock-wrap">
           <Lock onUnlock={() => setUnlocked(true)} />
         </div>
@@ -256,7 +256,6 @@ function Workspace() {
   return (
     <div className="root-col">
       <Titlebar
-        icon={cur ? cur.icon || "📄" : "🗒️"}
         title={cur ? cur.title || "제목 없음" : "D-Note"}
         pinned={pinned}
         onTogglePin={togglePin}

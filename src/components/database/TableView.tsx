@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Cell } from "./cells";
+import { Cell, popoverPos } from "./cells";
 import { Column, ColType, TYPE_LABELS } from "../../lib/dbviews";
 import type { ViewProps } from "./DatabaseView";
 
@@ -49,6 +49,13 @@ export function TableView(p: ViewProps) {
               <td className="db-row-actions">
                 <button
                   className="db-row-del"
+                  title="행 열기"
+                  onClick={() => p.onOpenRow(row.id)}
+                >
+                  ⤢
+                </button>
+                <button
+                  className="db-row-del"
                   title="행 삭제"
                   onClick={() => p.deleteRow(row.id)}
                 >
@@ -78,17 +85,24 @@ function ColumnHeader({
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ left: 0, top: 0 });
   const [name, setName] = useState(col.name);
 
   return (
     <th className="db-th">
-      <div className="db-th-inner" onClick={() => setOpen(true)}>
+      <div
+        className="db-th-inner"
+        onClick={(e) => {
+          setPos(popoverPos(e, 220, 360));
+          setOpen(true);
+        }}
+      >
         <span className="db-th-name">{col.name || "이름 없음"}</span>
       </div>
       {open && (
         <>
           <div className="select-overlay" onClick={() => setOpen(false)} />
-          <div className="col-menu">
+          <div className="col-menu" style={{ left: pos.left, top: pos.top }}>
             <input
               className="col-name-input"
               value={name}
@@ -135,15 +149,23 @@ function ColumnHeader({
 
 function AddColumn({ onAdd }: { onAdd: (type: ColType) => void }) {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ left: 0, top: 0 });
   return (
     <div className="add-col-wrap">
-      <button className="add-col-btn" title="속성 추가" onClick={() => setOpen(true)}>
+      <button
+        className="add-col-btn"
+        title="속성 추가"
+        onClick={(e) => {
+          setPos(popoverPos(e, 220, 320));
+          setOpen(true);
+        }}
+      >
         +
       </button>
       {open && (
         <>
           <div className="select-overlay" onClick={() => setOpen(false)} />
-          <div className="col-menu">
+          <div className="col-menu" style={{ left: pos.left, top: pos.top }}>
             <div className="col-menu-label">새 속성 유형</div>
             <div className="col-types">
               {ALL_TYPES.map((t) => (

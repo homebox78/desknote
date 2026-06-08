@@ -9,7 +9,11 @@ export function GalleryView(p: ViewProps) {
     <div className="db-gallery-wrap">
       <div className="db-gallery">
         {p.rows.map((row) => (
-          <div key={row.id} className="gallery-card">
+          <div
+            key={row.id}
+            className="gallery-card"
+            onClick={() => p.onOpenRow(row.id)}
+          >
             <div className="gallery-card-title">
               {titleCol ? String(row.data[titleCol.id] ?? "") || "제목 없음" : "제목 없음"}
             </div>
@@ -28,7 +32,10 @@ export function GalleryView(p: ViewProps) {
             <button
               className="gallery-del"
               title="행 삭제"
-              onClick={() => p.deleteRow(row.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                p.deleteRow(row.id);
+              }}
             >
               ×
             </button>

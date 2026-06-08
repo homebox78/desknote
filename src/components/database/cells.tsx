@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { MouseEvent } from "react";
 import {
   Column,
   SelectOption,
@@ -6,6 +7,16 @@ import {
 } from "../../lib/dbviews";
 
 const uuid = () => crypto.randomUUID();
+
+/** Fixed-position coordinates for a popover anchored under a trigger element,
+ *  clamped to the viewport so it never gets clipped by a scroll container. */
+export function popoverPos(e: MouseEvent, w = 220, h = 300) {
+  const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  return {
+    left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)),
+    top: Math.max(8, Math.min(r.bottom + 4, window.innerHeight - h - 8)),
+  };
+}
 
 /** Read-only rendering of a cell value (used by board / gallery / calendar). */
 export function CellValue({ column, value }: { column: Column; value: unknown }) {
@@ -127,6 +138,7 @@ export function Cell({ column, value, onChange, onColumnConfig }: CellProps) {
 
 function SelectCell({ column, value, onChange, onColumnConfig }: CellProps) {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ left: 0, top: 0 });
   const [q, setQ] = useState("");
   const multi = column.type === "multiselect";
   const options = column.config.options ?? [];
@@ -181,7 +193,13 @@ function SelectCell({ column, value, onChange, onColumnConfig }: CellProps) {
 
   return (
     <div className="select-cell">
-      <div className="select-display" onClick={() => setOpen(true)}>
+      <div
+        className="select-display"
+        onClick={(e) => {
+          setPos(popoverPos(e, 240, 320));
+          setOpen(true);
+        }}
+      >
         {selectedOpts.length ? (
           selectedOpts.map((o) => (
             <Tag key={o.id} option={o} onRemove={() => removeOne(o.id)} />
@@ -193,7 +211,7 @@ function SelectCell({ column, value, onChange, onColumnConfig }: CellProps) {
       {open && (
         <>
           <div className="select-overlay" onClick={() => setOpen(false)} />
-          <div className="select-pop">
+          <div className="select-pop" style={{ left: pos.left, top: pos.top }}>
             <input
               autoFocus
               className="select-search"

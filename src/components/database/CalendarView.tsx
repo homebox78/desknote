@@ -76,10 +76,27 @@ export function CalendarView(p: ViewProps) {
           const inMonth = d.getMonth() === month.getMonth();
           const items = byDate.get(key) ?? [];
           return (
-            <div key={i} className={`cal-cell ${inMonth ? "" : "out"} ${key === todayKey ? "today" : ""}`}>
+            <div
+              key={i}
+              className={`cal-cell ${inMonth ? "" : "out"} ${key === todayKey ? "today" : ""}`}
+              title="클릭하여 이 날짜에 추가"
+              onClick={async () => {
+                const id = await p.addRow();
+                p.updateCell(id, dateCol.id, key);
+                p.onOpenRow(id);
+              }}
+            >
               <div className="cal-day">{d.getDate()}</div>
               {items.map((row) => (
-                <div key={row.id} className="cal-chip" title={String(row.data[titleCol?.id ?? ""] ?? "")}>
+                <div
+                  key={row.id}
+                  className="cal-chip"
+                  title={String(row.data[titleCol?.id ?? ""] ?? "")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    p.onOpenRow(row.id);
+                  }}
+                >
                   {titleCol ? String(row.data[titleCol.id] ?? "") || "제목 없음" : "제목 없음"}
                 </div>
               ))}

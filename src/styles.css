@@ -897,9 +897,7 @@ optgroup {
   z-index: 90;
 }
 .select-pop {
-  position: absolute;
-  top: 100%;
-  left: 0;
+  position: fixed;
   z-index: 91;
   min-width: 220px;
   background: var(--nt-bg);
@@ -944,9 +942,7 @@ optgroup {
 
 /* ── Column menu ───────────────────────────────────────── */
 .col-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
+  position: fixed;
   z-index: 91;
   min-width: 200px;
   background: var(--nt-bg);
@@ -1185,4 +1181,77 @@ optgroup {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
+}
+.cal-cell {
+  cursor: pointer;
+}
+.board-card,
+.gallery-card {
+  cursor: pointer;
+}
+
+/* ── Row detail modal (edit all properties) ────────────── */
+.row-detail {
+  width: 460px;
+  max-width: 92vw;
+  background: var(--nt-bg);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px var(--nt-shadow), 0 0 0 1px var(--nt-border);
+  overflow: hidden;
+}
+.row-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--nt-border);
+  font-size: 15px;
+  font-weight: 600;
+}
+.rd-del {
+  background: transparent;
+  border: 1px solid var(--nt-border);
+  color: var(--nt-red);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 400;
+}
+.rd-del:hover {
+  background: var(--nt-hover);
+}
+.row-detail-body {
+  padding: 8px 16px 16px;
+  max-height: 64vh;
+  overflow-y: auto;
+}
+.rd-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0;
+}
+.rd-label {
+  width: 110px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--nt-text-light);
+  padding-top: 7px;
+}
+.rd-cell {
+  flex: 1;
+  border: 1px solid var(--nt-border);
+  border-radius: 6px;
+  min-height: 33px;
+  display: flex;
+  align-items: center;
+}
+.rd-cell .cell-input {
+  padding: 6px 10px;
+}
+.rd-cell .select-cell {
+  width: 100%;
 }

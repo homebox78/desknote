@@ -51,6 +51,7 @@ export function BoardView(p: ViewProps) {
                 className="board-card"
                 draggable
                 onDragStart={(e) => e.dataTransfer.setData("text/plain", row.id)}
+                onClick={() => p.onOpenRow(row.id)}
               >
                 <div className="board-card-title">
                   {titleCol
@@ -71,7 +72,9 @@ export function BoardView(p: ViewProps) {
             <button
               className="board-add"
               onClick={async () => {
-                await p.addRow();
+                const id = await p.addRow();
+                p.updateCell(id, groupCol.id, g.id);
+                p.onOpenRow(id);
               }}
             >
               + 추가

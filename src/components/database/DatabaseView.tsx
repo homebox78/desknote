@@ -5,6 +5,7 @@ import { TableView } from "./TableView";
 import { BoardView } from "./BoardView";
 import { GalleryView } from "./GalleryView";
 import { CalendarView } from "./CalendarView";
+import { RowDetailModal } from "./RowDetailModal";
 
 const VIEWS: { kind: dv.ViewKind; label: string; icon: string }[] = [
   { kind: "table", label: "표", icon: "▦" },
@@ -17,17 +18,19 @@ export interface ViewProps {
   columns: dv.Column[];
   rows: dv.Row[];
   updateCell: (rowId: string, colId: string, value: unknown) => void;
-  addRow: () => void;
+  addRow: () => Promise<string>;
   deleteRow: (id: string) => void;
   addColumn: (type: dv.ColType) => void;
   updateColumn: (id: string, patch: { name?: string; type?: dv.ColType; config?: dv.ColumnConfig }) => void;
   deleteColumn: (id: string) => void;
+  onOpenRow: (id: string) => void;
 }
 
 export function DatabaseView({ pageId, title }: { pageId: string; title?: string }) {
   const [table, setTable] = useState<dv.DbTable | null>(null);
   const [columns, setColumns] = useState<dv.Column[]>([]);
   const [rows, setRows] = useState<dv.Row[]>([]);
+  const [openRowId, setOpenRowId] = useState<string | null>(null);
   const rowsRef = useRef<dv.Row[]>([]);
   rowsRef.current = rows;
 
@@ -72,9 +75,10 @@ export function DatabaseView({ pageId, title }: { pageId: string; title?: string
     void dv.updateRow(rowId, data);
   };
 
-  const addRow = async () => {
-    await dv.addRow(table.id);
+  const addRow = async (): Promise<string> => {
+    const id = await dv.addRow(table.id);
     setRows(await dv.listRows(table.id));
+    return id;
   };
   const deleteRow = async (id: string) => {
     await dv.deleteRow(id);
@@ -106,7 +110,10 @@ export function DatabaseView({ pageId, title }: { pageId: string; title?: string
     addColumn,
     updateColumn,
     deleteColumn,
+    onOpenRow: setOpenRowId,
   };
+
+  const openRow = openRowId ? rows.find((r) => r.id === openRowId) : null;
 
   return (
     <div className="db-root">
@@ -131,6 +138,17 @@ export function DatabaseView({ pageId, title }: { pageId: string; title?: string
       {table.view === "board" && <BoardView {...props} />}
       {table.view === "gallery" && <GalleryView {...props} />}
       {table.view === "calendar" && <CalendarView {...props} />}
+
+      {openRow && (
+        <RowDetailModal
+          row={openRow}
+          columns={columns}
+          onChange={(colId, v) => updateCell(openRow.id, colId, v)}
+          onColumnConfig={(colId, config) => updateColumn(colId, { config })}
+          onDelete={() => deleteRow(openRow.id)}
+          onClose={() => setOpenRowId(null)}
+        />
+      )}
     </div>
   );
 }

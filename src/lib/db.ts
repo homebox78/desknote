@@ -208,6 +208,7 @@ export interface Hit {
   page_id: string;
   title: string;
   icon: string;
+  type: string;
 }
 
 export async function search(q: string): Promise<Hit[]> {
@@ -217,7 +218,7 @@ export async function search(q: string): Promise<Hit[]> {
   // Match a prefix on the last token; escape FTS quotes by wrapping tokens.
   const term = query.replace(/"/g, '""');
   return db.select<Hit[]>(
-    `SELECT p.id AS page_id, p.title, p.icon
+    `SELECT p.id AS page_id, p.title, p.icon, p.type
        FROM pages_fts f
        JOIN pages p ON p.id = f.page_id
       WHERE pages_fts MATCH ? AND p.is_trashed = 0

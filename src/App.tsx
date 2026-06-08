@@ -22,7 +22,16 @@ import "./styles.css";
 
 export default function App() {
   const [unlocked, setUnlocked] = useState(false);
-  if (!unlocked) return <Lock onUnlock={() => setUnlocked(true)} />;
+  if (!unlocked) {
+    return (
+      <div className="root-col">
+        <Titlebar icon="🔒" title="D-Note" showPin={false} pinned={false} onTogglePin={() => {}} />
+        <div className="lock-wrap">
+          <Lock onUnlock={() => setUnlocked(true)} />
+        </div>
+      </div>
+    );
+  }
   return <Workspace />;
 }
 

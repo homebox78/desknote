@@ -12,11 +12,13 @@ export function Titlebar({
   title,
   pinned,
   onTogglePin,
+  showPin = true,
 }: {
   icon: string;
   title: string;
   pinned: boolean;
   onTogglePin: () => void;
+  showPin?: boolean;
 }) {
   const [maximized, setMaximized] = useState(false);
   const win = getCurrentWindow();
@@ -38,13 +40,15 @@ export function Titlebar({
         <span className="tb-title">{title}</span>
       </div>
       <div className="tb-controls">
-        <button
-          className={`win-btn pin ${pinned ? "on" : ""}`}
-          title={pinned ? "항상 위 해제" : "항상 위에 고정"}
-          onClick={onTogglePin}
-        >
-          <Pin />
-        </button>
+        {showPin && (
+          <button
+            className={`win-btn pin ${pinned ? "on" : ""}`}
+            title={pinned ? "항상 위 해제" : "항상 위에 고정"}
+            onClick={onTogglePin}
+          >
+            <Pin />
+          </button>
+        )}
         <button className="win-btn" title="최소화" onClick={() => win.minimize()}>
           <Minimize />
         </button>

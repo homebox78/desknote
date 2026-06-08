@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -17,13 +17,18 @@ import { SearchModal } from "./components/SearchModal";
 import { TrashModal } from "./components/TrashModal";
 import { NotionUploadModal } from "./components/NotionUploadModal";
 import { SettingsPage } from "./components/SettingsPage";
+import { Onboarding } from "./components/Onboarding";
 import { ContextMenu, MenuItem } from "./components/ContextMenu";
 import { loadPrefs, savePrefs, applyPrefs, type Prefs } from "./lib/prefs";
 import "./styles.css";
 
 export default function App() {
   const [unlocked, setUnlocked] = useState(false);
+  const [vault, setVault] = useState<{ path: string; exists: boolean } | null>(null);
   const [prefs, setPrefs] = useState<Prefs>(loadPrefs);
+  const [theme, setTheme] = useState<"light" | "dark">(
+    () => (localStorage.getItem("desknote-theme") as "light" | "dark") || "light"
+  );
   const setPref = <K extends keyof Prefs>(key: K, value: Prefs[K]) =>
     setPrefs((p) => ({ ...p, [key]: value }));
 
@@ -31,6 +36,17 @@ export default function App() {
     applyPrefs(prefs);
     savePrefs(prefs);
   }, [prefs]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("desknote-theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    invoke<{ path: string; exists: boolean }>("vault_status")
+      .then(setVault)
+      .catch(() => setVault({ path: "", exists: true }));
+  }, []);
 
   // Auto-lock after inactivity (returns to the lock screen).
   useEffect(() => {
@@ -50,30 +66,42 @@ export default function App() {
   }, [unlocked, prefs.autoLock]);
 
   if (!unlocked) {
-    return (
+    const chrome = (body: ReactNode) => (
       <div className="root-col">
         <Titlebar title="D-Note" showPin={false} pinned={false} onTogglePin={() => {}} />
-        <div className="lock-wrap">
-          <Lock onUnlock={() => setUnlocked(true)} />
-        </div>
+        <div className="lock-wrap">{body}</div>
       </div>
     );
+    if (!vault) return chrome(null);
+    if (!vault.exists)
+      return chrome(
+        <Onboarding
+          vaultPath={vault.path}
+          theme={theme}
+          setTheme={setTheme}
+          prefs={prefs}
+          setPref={setPref}
+          onComplete={() => setUnlocked(true)}
+        />
+      );
+    return chrome(<Lock onUnlock={() => setUnlocked(true)} />);
   }
-  return <Workspace prefs={prefs} setPref={setPref} />;
+  return <Workspace prefs={prefs} setPref={setPref} theme={theme} setTheme={setTheme} />;
 }
 
 function Workspace({
   prefs,
   setPref,
+  theme,
+  setTheme,
 }: {
   prefs: Prefs;
   setPref: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void;
+  theme: "light" | "dark";
+  setTheme: (t: "light" | "dark") => void;
 }) {
   const [pages, setPages] = useState<db.Page[]>([]);
   const [current, setCurrent] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"light" | "dark">(
-    () => (localStorage.getItem("desknote-theme") as "light" | "dark") || "light"
-  );
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showSearch, setShowSearch] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
@@ -167,11 +195,6 @@ function Workspace({
     const s = await getSticky(pageId);
     await openStickyWindow(pageId, s ?? undefined);
   };
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem("desknote-theme", theme);
-  }, [theme]);
 
   // ⌘K / Ctrl+K → search
   useEffect(() => {

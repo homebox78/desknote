@@ -6,7 +6,9 @@ import type { PartialBlock } from "@blocknote/core";
 import * as db from "../lib/db";
 import { uploadFile } from "../lib/upload";
 import { exportMarkdown, exportHTML, exportPDF } from "../lib/export";
+import { getVersionContent } from "../lib/version";
 import { DatabaseView } from "./database/DatabaseView";
+import { VersionHistoryModal } from "./VersionHistoryModal";
 
 interface Props {
   page: db.Page;
@@ -103,6 +105,7 @@ function EditorBody({
 
   const timer = useRef<number | undefined>(undefined);
   const dirty = useRef(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const save = async () => {
     try {
@@ -138,14 +141,38 @@ function EditorBody({
     return exportHTML(title, html);
   };
 
+  // Restore a snapshot in place (replaceBlocks → persist), avoiding a remount race.
+  const restoreVersion = async (versionId: string) => {
+    const content = await getVersionContent(versionId);
+    let blocks: PartialBlock[] = [];
+    try {
+      blocks = JSON.parse(content);
+    } catch {
+      blocks = [];
+    }
+    editor.replaceBlocks(
+      editor.document,
+      (blocks.length ? blocks : [{ type: "paragraph", content: "" }]) as PartialBlock[]
+    );
+    await save();
+  };
+
   return (
     <>
       <div className="export-bar">
         <button onClick={() => doExport("md")}>Markdown</button>
         <button onClick={() => doExport("html")}>HTML</button>
         <button onClick={() => doExport("pdf")}>PDF</button>
+        <button onClick={() => setShowHistory(true)}>🕘 기록</button>
       </div>
       <BlockNoteView editor={editor} theme={theme} onChange={handleChange} />
+      {showHistory && (
+        <VersionHistoryModal
+          pageId={pageId}
+          onClose={() => setShowHistory(false)}
+          onRestore={restoreVersion}
+        />
+      )}
     </>
   );
 }

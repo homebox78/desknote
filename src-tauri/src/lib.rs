@@ -76,6 +76,26 @@ fn read_file_bytes(path: String) -> Result<Vec<u8>, String> {
     fs::read(&path).map_err(|e| e.to_string())
 }
 
+/// Copy the SQLite database to backups/desknote-<label>.db inside app data.
+/// The date label is supplied by the frontend. Returns the backup path.
+#[tauri::command]
+fn backup_db(app: tauri::AppHandle, label: String) -> Result<String, String> {
+    let base = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let src = base.join("desknote.db");
+    if !src.exists() {
+        return Err("database file not found".into());
+    }
+    let dir = base.join("backups");
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let safe: String = label
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_')
+        .collect();
+    let dest = dir.join(format!("desknote-{safe}.db"));
+    fs::copy(&src, &dest).map_err(|e| e.to_string())?;
+    Ok(dest.to_string_lossy().to_string())
+}
+
 fn migrations() -> Vec<Migration> {
     vec![
         Migration {
@@ -183,7 +203,8 @@ pub fn run() {
             save_text_file,
             save_binary_file,
             read_text_file,
-            read_file_bytes
+            read_file_bytes,
+            backup_db
         ])
         .run(tauri::generate_context!())
         .expect("error while running DeskNote");

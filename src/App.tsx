@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
 import * as db from "./lib/db";
 import { createDatabasePage } from "./lib/dbviews";
 import { importFile } from "./lib/import";
+import { exportToNotionZip } from "./lib/notion";
 import { Lock } from "./components/Lock";
 import { Titlebar } from "./components/Titlebar";
 import { Sidebar } from "./components/Sidebar";
@@ -43,6 +45,16 @@ function Workspace() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Daily automatic backup of the database (once per calendar day).
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem("desknote-backup") !== today) {
+      invoke<string>("backup_db", { label: today })
+        .then(() => localStorage.setItem("desknote-backup", today))
+        .catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -89,6 +101,20 @@ function Workspace() {
       }
     } catch (e) {
       alert("가져오기 실패: " + String(e));
+    }
+  };
+
+  const doExportNotion = async () => {
+    try {
+      const n = await exportToNotionZip();
+      if (n > 0) {
+        alert(
+          `${n}개 페이지를 ZIP으로 내보냈습니다.\n` +
+            "노션에서 '설정 > 가져오기 > Markdown & CSV'로 이 ZIP을 업로드하세요."
+        );
+      }
+    } catch (e) {
+      alert("노션 내보내기 실패: " + String(e));
     }
   };
 
@@ -166,6 +192,7 @@ function Workspace() {
           onAdd={addPage}
           onAddDatabase={addDatabase}
           onImport={doImport}
+          onExportNotion={doExportNotion}
           onMenu={openMenu}
           onSearch={() => setShowSearch(true)}
           onTrash={() => setShowTrash(true)}

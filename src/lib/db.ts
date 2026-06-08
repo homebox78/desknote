@@ -150,6 +150,24 @@ export async function saveContent(
     await titleOf(id),
     plain,
   ]);
+
+  // Periodic version snapshot: at most one every ~3 minutes, keep last 50.
+  const recent = await db.select<{ c: number }[]>(
+    "SELECT COUNT(*) AS c FROM page_versions WHERE page_id = ? AND created_at > datetime('now', '-3 minutes')",
+    [id]
+  );
+  if ((recent[0]?.c ?? 0) === 0) {
+    await db.execute(
+      "INSERT INTO page_versions (id, page_id, content) VALUES (?, ?, ?)",
+      [crypto.randomUUID(), id, content]
+    );
+    await db.execute(
+      `DELETE FROM page_versions WHERE page_id = ? AND id NOT IN (
+         SELECT id FROM page_versions WHERE page_id = ? ORDER BY created_at DESC LIMIT 50
+       )`,
+      [id, id]
+    );
+  }
 }
 
 async function titleOf(id: string): Promise<string> {

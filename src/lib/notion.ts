@@ -6,6 +6,8 @@
 import JSZip from "jszip";
 import { save } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { markdownToBlocks } from "@tryfabric/martian";
 import { BlockNoteEditor } from "@blocknote/core";
 import type { PartialBlock } from "@blocknote/core";
 import * as db from "./db";
@@ -76,4 +78,129 @@ export async function exportToNotionZip(): Promise<number> {
   if (!path) return 0;
   await invoke("save_binary_file", { path, bytes: Array.from(bytes) });
   return count;
+}
+
+/* ============================================================
+   Direct upload to the Notion API. The HTTP request runs in Rust
+   (tauri-plugin-http, scoped to api.notion.com), so the WebView's
+   strict CSP stays intact. Opt-in; requires a Notion integration
+   token and a parent page shared with that integration.
+   ============================================================ */
+
+const NOTION_VERSION = "2022-06-28";
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Extract a Notion page id (dashed UUID) from a URL or raw id. */
+export function parseNotionId(input: string): string | null {
+  const hex = input.replace(/[^0-9a-fA-F]/g, "");
+  if (hex.length < 32) return null;
+  const id = hex.slice(-32).toLowerCase();
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
+}
+
+async function notionFetch(
+  token: string,
+  url: string,
+  method: string,
+  body: unknown
+): Promise<any> {
+  const resp = await tauriFetch(url, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Notion-Version": NOTION_VERSION,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const json: any = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(json?.message || `HTTP ${resp.status}`);
+  return json;
+}
+
+async function createNotionPage(
+  token: string,
+  parentId: string,
+  title: string,
+  children: unknown[]
+): Promise<string> {
+  const res = await notionFetch(token, "https://api.notion.com/v1/pages", "POST", {
+    parent: { page_id: parentId },
+    properties: { title: [{ text: { content: title || "제목 없음" } }] },
+    children: children.slice(0, 100),
+  });
+  const id = res.id as string;
+  for (let i = 100; i < children.length; i += 100) {
+    await sleep(350);
+    await notionFetch(
+      token,
+      `https://api.notion.com/v1/blocks/${id}/children`,
+      "PATCH",
+      { children: children.slice(i, i + 100) }
+    );
+  }
+  return id;
+}
+
+export interface UploadResult {
+  created: number;
+  skipped: number;
+  errors: string[];
+}
+
+export async function uploadToNotion(
+  token: string,
+  parentInput: string,
+  onProgress: (msg: string) => void
+): Promise<UploadResult> {
+  const rootId = parseNotionId(parentInput);
+  if (!rootId) throw new Error("올바른 노션 페이지 URL 또는 ID가 아닙니다");
+
+  const pages = await db.listPages();
+  const editor = BlockNoteEditor.create();
+  const byParent = new Map<string | null, db.Page[]>();
+  for (const p of pages) {
+    const arr = byParent.get(p.parent_id) ?? [];
+    arr.push(p);
+    byParent.set(p.parent_id, arr);
+  }
+
+  const result: UploadResult = { created: 0, skipped: 0, errors: [] };
+
+  const walk = async (deskParent: string | null, notionParent: string) => {
+    for (const page of byParent.get(deskParent) ?? []) {
+      if (page.type === "db") {
+        // Databases aren't created via the simple API in v1; recurse children.
+        result.skipped++;
+        onProgress(`데이터베이스 건너뜀: ${page.title || "제목 없음"}`);
+        await walk(page.id, notionParent);
+        continue;
+      }
+      try {
+        onProgress(`업로드 중: ${page.title || "제목 없음"}`);
+        const json = await db.loadContent(page.id);
+        let blocks: PartialBlock[] = [];
+        try {
+          blocks = JSON.parse(json);
+        } catch {
+          blocks = [];
+        }
+        let md = await editor.blocksToMarkdownLossy(blocks as PartialBlock[]);
+        md = md.replace(/!\[[^\]]*\]\([^)]*\)/g, "").trim(); // drop local images
+        const nblocks = markdownToBlocks(md, {
+          notionLimits: { truncate: true, onError: () => {} },
+        }) as unknown[];
+        await sleep(350);
+        const newId = await createNotionPage(token, notionParent, page.title, nblocks);
+        result.created++;
+        await walk(page.id, newId);
+      } catch (e) {
+        result.errors.push(`${page.title || "제목 없음"}: ${String(e)}`);
+        onProgress(`실패: ${page.title || "제목 없음"}`);
+      }
+    }
+  };
+
+  await walk(null, rootId);
+  return result;
 }

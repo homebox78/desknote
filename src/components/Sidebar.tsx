@@ -12,6 +12,7 @@ interface Props {
   onAddDatabase: (parent: string | null) => void;
   onImport: () => void;
   onExportNotion: () => void;
+  onNotionUpload: () => void;
   onMenu: (e: MouseEvent, page: db.Page) => void;
   onSearch: () => void;
   onTrash: () => void;
@@ -118,7 +119,11 @@ export function Sidebar(p: Props) {
       </div>
       <div className="sb-item" onClick={p.onExportNotion}>
         <span className="icon">📤</span>
-        <span className="label">노션으로 내보내기</span>
+        <span className="label">노션으로 내보내기 (ZIP)</span>
+      </div>
+      <div className="sb-item" onClick={p.onNotionUpload}>
+        <span className="icon">🔗</span>
+        <span className="label">노션에 직접 업로드 (API)</span>
       </div>
     </aside>
   );

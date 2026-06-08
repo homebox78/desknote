@@ -20,6 +20,10 @@
     "sql:allow-select",
     "sql:allow-close",
     "stronghold:default",
-    "dialog:default"
+    "dialog:default",
+    {
+      "identifier": "http:default",
+      "allow": [{ "url": "https://api.notion.com/*" }]
+    }
   ]
 }

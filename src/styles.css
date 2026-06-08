@@ -559,6 +559,36 @@ optgroup {
   font-size: 13px;
 }
 
+/* ── Notion upload modal inputs ────────────────────────── */
+.lock-like-input {
+  padding: 9px 12px;
+  border: 1px solid var(--nt-border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--nt-bg);
+  color: var(--nt-text);
+  outline: none;
+  font-family: inherit;
+}
+.lock-like-input:focus {
+  border-color: var(--nt-blue);
+}
+.notion-upload-btn {
+  background: var(--nt-blue);
+  color: #fff;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+}
+.notion-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* ============================================================
    Database views (table / board / gallery / calendar)
    ============================================================ */

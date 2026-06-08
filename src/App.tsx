@@ -12,6 +12,7 @@ import { Sidebar } from "./components/Sidebar";
 import { PageView } from "./components/PageView";
 import { SearchModal } from "./components/SearchModal";
 import { TrashModal } from "./components/TrashModal";
+import { NotionUploadModal } from "./components/NotionUploadModal";
 import { ContextMenu, MenuItem } from "./components/ContextMenu";
 import "./styles.css";
 
@@ -30,6 +31,7 @@ function Workspace() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showSearch, setShowSearch] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
+  const [showNotion, setShowNotion] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; items: MenuItem[] } | null>(
     null
   );
@@ -193,6 +195,7 @@ function Workspace() {
           onAddDatabase={addDatabase}
           onImport={doImport}
           onExportNotion={doExportNotion}
+          onNotionUpload={() => setShowNotion(true)}
           onMenu={openMenu}
           onSearch={() => setShowSearch(true)}
           onTrash={() => setShowTrash(true)}
@@ -231,6 +234,7 @@ function Workspace() {
           }}
         />
       )}
+      {showNotion && <NotionUploadModal onClose={() => setShowNotion(false)} />}
       {menu && <ContextMenu {...menu} onClose={() => setMenu(null)} />}
     </div>
   );

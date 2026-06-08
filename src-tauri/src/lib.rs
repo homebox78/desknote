@@ -176,6 +176,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_http::init())
         // Password → 32-byte key via Argon2id. Stronghold protects the master
         // key in an encrypted snapshot; a wrong password fails to decrypt it.
         .plugin(

@@ -16,7 +16,6 @@ interface Props {
   onMenu: (e: MouseEvent, page: db.Page) => void;
   onSearch: () => void;
   onTrash: () => void;
-  onSettings: () => void;
 }
 
 export function Sidebar(p: Props) {
@@ -73,10 +72,6 @@ export function Sidebar(p: Props) {
         <span className="icon">🔍</span>
         <span className="label">검색</span>
         <span className="shortcut">⌘K</span>
-      </div>
-      <div className="sb-item" onClick={p.onSettings}>
-        <span className="icon">⚙️</span>
-        <span className="label">설정</span>
       </div>
       <div className="sb-item" onClick={p.onTrash}>
         <span className="icon">🗑️</span>

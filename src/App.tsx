@@ -260,6 +260,7 @@ function Workspace() {
         title={cur ? cur.title || "제목 없음" : "D-Note"}
         pinned={pinned}
         onTogglePin={togglePin}
+        onSettings={() => setShowSettings(true)}
       />
       <div className="app">
         <Sidebar
@@ -277,7 +278,6 @@ function Workspace() {
           onMenu={openMenu}
           onSearch={() => setShowSearch(true)}
           onTrash={() => setShowTrash(true)}
-          onSettings={() => setShowSettings(true)}
         />
 
         <main className="main">

@@ -14,12 +14,11 @@ export interface Sticky {
 }
 
 export const STICKY_COLORS = [
-  "#fff8b8", // yellow
-  "#d8f0c8", // green
-  "#cfe6f7", // blue
-  "#f8d3e0", // pink
-  "#ecdcc6", // tan
-  "#e6dcf2", // purple
+  "#f5df72", // yellow
+  "#f6c6cf", // pink
+  "#bcdcf2", // blue
+  "#c8e6b6", // green
+  "#e3e3e5", // gray
 ];
 
 export async function listOpenStickies(): Promise<Sticky[]> {

@@ -15,6 +15,7 @@ interface Props {
   onNotionUpload: () => void;
   onNewSticky: () => void;
   onMenu: (e: MouseEvent, page: db.Page) => void;
+  onToggleFav: (id: string) => void;
   onSearch: () => void;
   onTrash: () => void;
 }
@@ -60,6 +61,16 @@ export function Sidebar(p: Props) {
             >
               <Icon.plus size={15} />
             </span>
+            <span
+              className={`fav ${pg.is_favorite ? "on" : ""}`}
+              title={pg.is_favorite ? "즐겨찾기 해제" : "즐겨찾기"}
+              onClick={(e) => {
+                e.stopPropagation();
+                p.onToggleFav(pg.id);
+              }}
+            >
+              <Icon.star size={14} fill={pg.is_favorite ? "currentColor" : "none"} />
+            </span>
           </div>
           {open && renderTree(pg.id, depth + 1)}
         </div>
@@ -90,19 +101,33 @@ export function Sidebar(p: Props) {
       {favs.length > 0 && (
         <>
           <div className="sb-section">즐겨찾기</div>
-          {favs.map((pg) => (
-            <div
-              key={pg.id}
-              className={`tree-row ${p.current === pg.id ? "active" : ""}`}
-              onClick={() => p.onSelect(pg.id)}
-              onContextMenu={(e) => p.onMenu(e, pg)}
-            >
-              <span className="icon" style={{ marginLeft: 4 }}>
-                <Icon.star size={16} />
-              </span>
-              <span className="label">{pg.title || "제목 없음"}</span>
-            </div>
-          ))}
+          {favs.map((pg) => {
+            const FavIcon = pg.type === "db" ? Icon.database : Icon.doc;
+            return (
+              <div
+                key={pg.id}
+                className={`tree-row ${p.current === pg.id ? "active" : ""}`}
+                style={{ paddingLeft: 8 }}
+                onClick={() => p.onSelect(pg.id)}
+                onContextMenu={(e) => p.onMenu(e, pg)}
+              >
+                <span className="icon">
+                  <FavIcon size={16} />
+                </span>
+                <span className="label">{pg.title || "제목 없음"}</span>
+                <span
+                  className="fav on"
+                  title="즐겨찾기 해제"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    p.onToggleFav(pg.id);
+                  }}
+                >
+                  <Icon.star size={14} fill="currentColor" />
+                </span>
+              </div>
+            );
+          })}
         </>
       )}
 

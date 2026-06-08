@@ -109,6 +109,27 @@ optgroup {
   align-items: center;
   justify-content: center;
 }
+.tree-row .fav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  flex-shrink: 0;
+  color: var(--nt-text-faint);
+  opacity: 0;
+  cursor: pointer;
+}
+.tree-row:hover .fav {
+  opacity: 0.55;
+}
+.tree-row .fav:hover {
+  opacity: 1;
+  color: var(--nt-text-light);
+}
+.tree-row .fav.on {
+  opacity: 1;
+  color: var(--nt-blue);
+}
 
 .root-col {
   display: flex;
@@ -697,78 +718,148 @@ optgroup {
   color: var(--nt-text-faint);
 }
 
-/* ── Sticky note window ────────────────────────────────── */
+/* ── Sticky note window (matches mockup) ───────────────── */
 .sticky-root {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  color: #2b2d31;
+  font-family: var(--nt-font);
 }
 .sticky-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px 4px 10px;
+  gap: 5px;
+  padding: 5px 6px 5px 9px;
   flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.06);
+  cursor: grab;
+  position: relative;
+}
+.sticky-bar:active {
+  cursor: grabbing;
+}
+.sticky-pin {
+  display: inline-flex;
+  opacity: 0.7;
 }
 .sticky-title {
   flex: 1;
   min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgb(45, 43, 40);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.82;
 }
-.sticky-title::placeholder {
-  color: rgba(45, 43, 40, 0.4);
-}
-.sticky-colors {
+.sticky-actions {
   display: flex;
-  gap: 3px;
-}
-.sticky-dot {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-}
-.sticky-dot.on {
-  outline: 2px solid rgba(0, 0, 0, 0.45);
-  outline-offset: 1px;
+  align-items: center;
+  gap: 0;
 }
 .sticky-btn {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 13px;
-  color: rgba(45, 43, 40, 0.7);
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
+  color: inherit;
+  opacity: 0.6;
 }
-.sticky-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: rgb(45, 43, 40);
+.sticky-btn:hover,
+.sticky-btn.is-on {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.09);
+}
+.sticky-palette {
+  position: absolute;
+  top: 31px;
+  right: 6px;
+  display: flex;
+  gap: 5px;
+  padding: 6px;
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+  z-index: 5;
+}
+.sticky-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12) inset;
+}
+.sticky-dot.is-on {
+  box-shadow: 0 0 0 2px #2b2d31;
 }
 .sticky-body {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 12px 24px;
+  padding: 2px 8px 8px;
 }
 /* let the sticky's paper color show through the editor */
 .sticky-body .bn-container,
-.sticky-body .bn-editor {
+.sticky-body .bn-editor,
+.sticky-body .bn-container * {
   background: transparent !important;
-  font-size: 14px;
+}
+.sticky-body .bn-container {
+  font-size: 13.5px;
+  color: #2b2d31;
 }
 .sticky-body .bn-editor {
   padding-inline: 0 !important;
+}
+.sticky-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 13px 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.sticky-sync {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.85;
+}
+.sticky-syncdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sticky-syncdot.is-busy {
+  animation: dn-pulse 1s infinite;
+}
+@keyframes dn-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+.sticky-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+.sticky-open:hover {
+  opacity: 1;
+  text-decoration: underline;
 }
 
 /* ── Settings modal ────────────────────────────────────── */

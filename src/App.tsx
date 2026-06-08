@@ -147,7 +147,10 @@ function Workspace({
       )
       .catch(() => {});
     let un: (() => void) | undefined;
-    listen<string>("goto-page", (e) => setCurrent(e.payload)).then((f) => {
+    listen<string>("goto-page", (e) => {
+      setCurrent(e.payload);
+      setShowSettings(false);
+    }).then((f) => {
       un = f;
     });
     return () => un?.();
@@ -235,6 +238,12 @@ function Workspace({
       return n;
     });
 
+  const toggleFav = async (id: string) => {
+    const pg = pages.find((p) => p.id === id);
+    await db.toggleFavorite(id, pg?.is_favorite ?? 0);
+    refresh();
+  };
+
   const openMenu = (e: MouseEvent, p: db.Page) => {
     e.preventDefault();
     setMenu({
@@ -312,6 +321,7 @@ function Workspace({
           onNotionUpload={() => setShowNotion(true)}
           onNewSticky={newSticky}
           onMenu={openMenu}
+          onToggleFav={toggleFav}
           onSearch={() => setShowSearch(true)}
           onTrash={() => setShowTrash(true)}
         />

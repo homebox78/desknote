@@ -120,8 +120,9 @@ export function Onboarding({
             </div>
             <h1 className="dn-onb-title">D-Note에 오신 것을 환영합니다</h1>
             <p className="dn-onb-sub">
-              설치가 완료되었습니다. 모든 노트는 이 PC 안에만 저장되는 오프라인 전용 작업
-              공간입니다.
+              설치가 완료되었습니다.
+              <br />
+              모든 노트는 이 PC 안에만 저장되는 오프라인 전용 작업 공간입니다.
             </p>
             <div className="dn-onb-feats">
               <Feature icon={Icon.cloudOff} title="오프라인 전용" desc="외부 네트워크 통신 없음" />

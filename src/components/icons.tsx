@@ -168,6 +168,14 @@ export const Icon = {
       <path d="M8 21h8M12 17v4" />
     </Ic>
   ),
+  panel: (p: IconProps) => (
+    <Ic {...p}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16" />
+    </Ic>
+  ),
+  hash: P("M9 4L7 20M17 4l-2 16M5 9h14M4 15h14"),
+  type: P("M5 6h14M5 6v-1M5 6v1M12 6v12M9 18h6"),
   checkCircle: (p: IconProps) => (
     <Ic {...p}>
       <circle cx="12" cy="12" r="9" />

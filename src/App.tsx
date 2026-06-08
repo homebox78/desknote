@@ -16,12 +16,39 @@ import { PageView } from "./components/PageView";
 import { SearchModal } from "./components/SearchModal";
 import { TrashModal } from "./components/TrashModal";
 import { NotionUploadModal } from "./components/NotionUploadModal";
-import { SettingsModal } from "./components/SettingsModal";
+import { SettingsPage } from "./components/SettingsPage";
 import { ContextMenu, MenuItem } from "./components/ContextMenu";
+import { loadPrefs, savePrefs, applyPrefs, type Prefs } from "./lib/prefs";
 import "./styles.css";
 
 export default function App() {
   const [unlocked, setUnlocked] = useState(false);
+  const [prefs, setPrefs] = useState<Prefs>(loadPrefs);
+  const setPref = <K extends keyof Prefs>(key: K, value: Prefs[K]) =>
+    setPrefs((p) => ({ ...p, [key]: value }));
+
+  useEffect(() => {
+    applyPrefs(prefs);
+    savePrefs(prefs);
+  }, [prefs]);
+
+  // Auto-lock after inactivity (returns to the lock screen).
+  useEffect(() => {
+    if (!unlocked || prefs.autoLock === "off") return;
+    const ms = Number(prefs.autoLock) * 60000;
+    let timer = window.setTimeout(() => setUnlocked(false), ms);
+    const reset = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setUnlocked(false), ms);
+    };
+    const evs = ["mousemove", "keydown", "mousedown", "wheel"];
+    evs.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    return () => {
+      window.clearTimeout(timer);
+      evs.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [unlocked, prefs.autoLock]);
+
   if (!unlocked) {
     return (
       <div className="root-col">
@@ -32,10 +59,16 @@ export default function App() {
       </div>
     );
   }
-  return <Workspace />;
+  return <Workspace prefs={prefs} setPref={setPref} />;
 }
 
-function Workspace() {
+function Workspace({
+  prefs,
+  setPref,
+}: {
+  prefs: Prefs;
+  setPref: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void;
+}) {
   const [pages, setPages] = useState<db.Page[]>([]);
   const [current, setCurrent] = useState<string | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">(
@@ -64,13 +97,14 @@ function Workspace() {
 
   // Daily automatic backup of the database (once per calendar day).
   useEffect(() => {
+    if (!prefs.autoBackup) return;
     const today = new Date().toISOString().slice(0, 10);
     if (localStorage.getItem("desknote-backup") !== today) {
       invoke<string>("backup_db", { label: today })
         .then(() => localStorage.setItem("desknote-backup", today))
         .catch(() => {});
     }
-  }, []);
+  }, [prefs.autoBackup]);
 
   // Import a file opened via Explorer "Send to D-Note" / CLI / a second launch.
   useEffect(() => {
@@ -259,14 +293,17 @@ function Workspace() {
         title={cur ? cur.title || "제목 없음" : "D-Note"}
         pinned={pinned}
         onTogglePin={togglePin}
-        onSettings={() => setShowSettings(true)}
+        onSettings={() => setShowSettings((s) => !s)}
       />
       <div className="app">
         <Sidebar
           pages={pages}
           current={current}
           expanded={expanded}
-          onSelect={setCurrent}
+          onSelect={(id) => {
+            setCurrent(id);
+            setShowSettings(false);
+          }}
           onToggle={toggleExpand}
           onAdd={addPage}
           onAddDatabase={addDatabase}
@@ -280,7 +317,9 @@ function Workspace() {
         />
 
         <main className="main">
-          {cur ? (
+          {showSettings ? (
+            <SettingsPage theme={theme} onTheme={setTheme} prefs={prefs} setPref={setPref} />
+          ) : cur ? (
             <PageView
               key={cur.id}
               page={cur}
@@ -312,13 +351,6 @@ function Workspace() {
         />
       )}
       {showNotion && <NotionUploadModal onClose={() => setShowNotion(false)} />}
-      {showSettings && (
-        <SettingsModal
-          theme={theme}
-          onTheme={setTheme}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
       {menu && <ContextMenu {...menu} onClose={() => setMenu(null)} />}
     </div>
   );

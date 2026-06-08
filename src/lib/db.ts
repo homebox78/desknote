@@ -1,11 +1,16 @@
 // Local SQLite access via the Tauri SQL plugin. Every query runs against the
 // single on-disk database; nothing here touches the network.
 import Database from "@tauri-apps/plugin-sql";
+import { invoke } from "@tauri-apps/api/core";
 
 let _db: Database | null = null;
 
 export async function getDb(): Promise<Database> {
-  if (!_db) _db = await Database.load("sqlite:desknote.db");
+  if (!_db) {
+    // The connection string depends on the chosen data folder (Rust decides).
+    const url = await invoke<string>("db_url");
+    _db = await Database.load(url);
+  }
   return _db;
 }
 

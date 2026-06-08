@@ -5,7 +5,6 @@ interface Props {
   pages: db.Page[];
   current: string | null;
   expanded: Set<string>;
-  theme: "light" | "dark";
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onAdd: (parent: string | null) => void;
@@ -16,7 +15,7 @@ interface Props {
   onMenu: (e: MouseEvent, page: db.Page) => void;
   onSearch: () => void;
   onTrash: () => void;
-  onThemeToggle: () => void;
+  onSettings: () => void;
 }
 
 export function Sidebar(p: Props) {
@@ -74,9 +73,9 @@ export function Sidebar(p: Props) {
         <span className="label">검색</span>
         <span className="shortcut">⌘K</span>
       </div>
-      <div className="sb-item" onClick={p.onThemeToggle}>
-        <span className="icon">{p.theme === "light" ? "🌙" : "☀️"}</span>
-        <span className="label">{p.theme === "light" ? "다크 모드" : "라이트 모드"}</span>
+      <div className="sb-item" onClick={p.onSettings}>
+        <span className="icon">⚙️</span>
+        <span className="label">설정</span>
       </div>
       <div className="sb-item" onClick={p.onTrash}>
         <span className="icon">🗑️</span>

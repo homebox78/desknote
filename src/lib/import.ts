@@ -4,6 +4,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { BlockNoteEditor } from "@blocknote/core";
 import mammoth from "mammoth";
+import * as XLSX from "xlsx";
 import * as db from "./db";
 import { importCsvDatabase } from "./dbviews";
 
@@ -11,16 +12,23 @@ export async function importFile(): Promise<string | null> {
   const selected = await open({
     multiple: false,
     filters: [
-      { name: "가져오기 (MD/DOCX/CSV)", extensions: ["md", "markdown", "txt", "docx", "csv"] },
+      {
+        name: "가져오기 (MD/DOCX/CSV/XLSX)",
+        extensions: ["md", "markdown", "txt", "docx", "csv", "xlsx", "xls"],
+      },
     ],
   });
   if (!selected || typeof selected !== "string") return null;
+  return importPath(selected);
+}
 
-  const path = selected;
+/** Import a file by path (used by the dialog, Explorer "Send to D-Note", CLI). */
+export async function importPath(path: string): Promise<string> {
   const ext = (path.split(".").pop() ?? "").toLowerCase();
   const base = (path.split(/[\\/]/).pop() ?? "가져온 문서").replace(/\.[^.]+$/, "");
 
   if (ext === "csv") return importCsv(path, base);
+  if (ext === "xlsx" || ext === "xls") return importXlsx(path, base);
   if (ext === "docx") return importDocx(path, base);
   return importMarkdown(path, base);
 }
@@ -55,6 +63,17 @@ async function importDocx(path: string, base: string): Promise<string> {
 async function importCsv(path: string, base: string): Promise<string> {
   const text = await invoke<string>("read_text_file", { path });
   const table = parseCsv(text);
+  const headers = table[0]?.length ? table[0] : ["열 1"];
+  const rows = table.slice(1);
+  return importCsvDatabase(base, headers, rows);
+}
+
+async function importXlsx(path: string, base: string): Promise<string> {
+  const bytes = await invoke<number[]>("read_file_bytes", { path });
+  const wb = XLSX.read(new Uint8Array(bytes), { type: "array" });
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  const csv = sheet ? XLSX.utils.sheet_to_csv(sheet) : "";
+  const table = parseCsv(csv);
   const headers = table[0]?.length ? table[0] : ["열 1"];
   const rows = table.slice(1);
   return importCsvDatabase(base, headers, rows);

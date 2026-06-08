@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import * as db from "./lib/db";
 import { createDatabasePage } from "./lib/dbviews";
-import { importFile } from "./lib/import";
+import { importFile, importPath } from "./lib/import";
 import { exportToNotionZip } from "./lib/notion";
 import { Lock } from "./components/Lock";
 import { Titlebar } from "./components/Titlebar";
@@ -13,6 +14,7 @@ import { PageView } from "./components/PageView";
 import { SearchModal } from "./components/SearchModal";
 import { TrashModal } from "./components/TrashModal";
 import { NotionUploadModal } from "./components/NotionUploadModal";
+import { SettingsModal } from "./components/SettingsModal";
 import { ContextMenu, MenuItem } from "./components/ContextMenu";
 import "./styles.css";
 
@@ -32,6 +34,7 @@ function Workspace() {
   const [showSearch, setShowSearch] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
   const [showNotion, setShowNotion] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number; items: MenuItem[] } | null>(
     null
   );
@@ -55,6 +58,36 @@ function Workspace() {
       invoke<string>("backup_db", { label: today })
         .then(() => localStorage.setItem("desknote-backup", today))
         .catch(() => {});
+    }
+  }, []);
+
+  // Import a file opened via Explorer "Send to D-Note" / CLI / a second launch.
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    const consume = async () => {
+      try {
+        const path = await invoke<string | null>("take_startup_file");
+        if (path) {
+          const id = await importPath(path);
+          await refresh();
+          setCurrent(id);
+        }
+      } catch {
+        /* ignore non-importable files */
+      }
+    };
+    consume();
+    listen("open-file", () => consume()).then((f) => {
+      unlisten = f;
+    });
+    return () => unlisten?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the Explorer "Send to D-Note" menu registered unless the user opted out.
+  useEffect(() => {
+    if (localStorage.getItem("desknote-shellmenu") !== "off") {
+      invoke("register_shell_menu").catch(() => {});
     }
   }, []);
 
@@ -188,7 +221,6 @@ function Workspace() {
           pages={pages}
           current={current}
           expanded={expanded}
-          theme={theme}
           onSelect={setCurrent}
           onToggle={toggleExpand}
           onAdd={addPage}
@@ -199,7 +231,7 @@ function Workspace() {
           onMenu={openMenu}
           onSearch={() => setShowSearch(true)}
           onTrash={() => setShowTrash(true)}
-          onThemeToggle={() => setTheme(theme === "light" ? "dark" : "light")}
+          onSettings={() => setShowSettings(true)}
         />
 
         <main className="main">
@@ -235,6 +267,13 @@ function Workspace() {
         />
       )}
       {showNotion && <NotionUploadModal onClose={() => setShowNotion(false)} />}
+      {showSettings && (
+        <SettingsModal
+          theme={theme}
+          onTheme={setTheme}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
       {menu && <ContextMenu {...menu} onClose={() => setMenu(null)} />}
     </div>
   );

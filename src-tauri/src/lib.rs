@@ -329,6 +329,23 @@ fn migrations() -> Vec<Migration> {
             ",
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "sticky_notes",
+            sql: "
+                CREATE TABLE IF NOT EXISTS stickies (
+                    page_id    TEXT PRIMARY KEY,
+                    x          INTEGER,
+                    y          INTEGER,
+                    w          INTEGER DEFAULT 300,
+                    h          INTEGER DEFAULT 340,
+                    color      TEXT DEFAULT '#fff8b8',
+                    is_open    INTEGER DEFAULT 1,
+                    updated_at TEXT DEFAULT (datetime('now'))
+                );
+            ",
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

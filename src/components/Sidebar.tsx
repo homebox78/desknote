@@ -12,6 +12,7 @@ interface Props {
   onImport: () => void;
   onExportNotion: () => void;
   onNotionUpload: () => void;
+  onNewSticky: () => void;
   onMenu: (e: MouseEvent, page: db.Page) => void;
   onSearch: () => void;
   onTrash: () => void;
@@ -111,6 +112,10 @@ export function Sidebar(p: Props) {
       <div className="sb-item" onClick={() => p.onAddDatabase(null)}>
         <span className="icon">🗃️</span>
         <span className="label">새 데이터베이스</span>
+      </div>
+      <div className="sb-item" onClick={p.onNewSticky}>
+        <span className="icon">📌</span>
+        <span className="label">새 포스트잇</span>
       </div>
       <div className="sb-item" onClick={p.onImport}>
         <span className="icon">📥</span>

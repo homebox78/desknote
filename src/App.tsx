@@ -7,6 +7,8 @@ import * as db from "./lib/db";
 import { createDatabasePage } from "./lib/dbviews";
 import { importFile, importPath } from "./lib/import";
 import { exportToNotionZip } from "./lib/notion";
+import { createStickyPage, markStickyOpen, getSticky, listOpenStickies } from "./lib/sticky";
+import { openStickyWindow } from "./lib/stickyWindow";
 import { Lock } from "./components/Lock";
 import { Titlebar } from "./components/Titlebar";
 import { Sidebar } from "./components/Sidebar";
@@ -90,6 +92,35 @@ function Workspace() {
       invoke("register_shell_menu").catch(() => {});
     }
   }, []);
+
+  // Reopen sticky-note windows that were open last session, and listen for a
+  // sticky asking to navigate the main window to its page.
+  useEffect(() => {
+    listOpenStickies()
+      .then((list) =>
+        list.forEach((s) =>
+          openStickyWindow(s.page_id, { x: s.x, y: s.y, w: s.w, h: s.h })
+        )
+      )
+      .catch(() => {});
+    let un: (() => void) | undefined;
+    listen<string>("goto-page", (e) => setCurrent(e.payload)).then((f) => {
+      un = f;
+    });
+    return () => un?.();
+  }, []);
+
+  const newSticky = async () => {
+    const id = await createStickyPage();
+    await refresh();
+    await openStickyWindow(id);
+  };
+
+  const openAsSticky = async (pageId: string) => {
+    await markStickyOpen(pageId);
+    const s = await getSticky(pageId);
+    await openStickyWindow(pageId, s ?? undefined);
+  };
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -195,6 +226,11 @@ function Workspace() {
           onClick: () => addDatabase(p.id),
         },
         {
+          label: "포스트잇으로 열기",
+          icon: "📌",
+          onClick: () => openAsSticky(p.id),
+        },
+        {
           label: "삭제",
           icon: "🗑️",
           danger: true,
@@ -228,6 +264,7 @@ function Workspace() {
           onImport={doImport}
           onExportNotion={doExportNotion}
           onNotionUpload={() => setShowNotion(true)}
+          onNewSticky={newSticky}
           onMenu={openMenu}
           onSearch={() => setShowSearch(true)}
           onTrash={() => setShowTrash(true)}

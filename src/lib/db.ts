@@ -33,6 +33,12 @@ export async function listPages(): Promise<Page[]> {
   );
 }
 
+export async function getPage(id: string): Promise<Page | null> {
+  const db = await getDb();
+  const r = await db.select<Page[]>(`SELECT ${SELECT_COLS} FROM pages WHERE id = ?`, [id]);
+  return r[0] ?? null;
+}
+
 export async function listTrash(): Promise<Page[]> {
   const db = await getDb();
   return db.select<Page[]>(

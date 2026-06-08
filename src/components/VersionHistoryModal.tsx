@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { listVersions, formatVersionTime, Version } from "../lib/version";
+import { listVersions, relativeTime, Version } from "../lib/version";
 import { Icon } from "./icons";
 
 /** Lists saved snapshots for a page; restoring is handled by the editor. */
@@ -20,6 +20,7 @@ export function VersionHistoryModal({
   }, [pageId]);
 
   const current = versions[sel];
+  const isCurrent = sel === 0; // newest snapshot
 
   return (
     <div className="dn-overlay dn-overlay--center" onMouseDown={onClose}>
@@ -36,10 +37,10 @@ export function VersionHistoryModal({
                   className={`dn-version-item ${i === sel ? "is-sel" : ""}`}
                   onClick={() => setSel(i)}
                 >
-                  <span className="dn-version-time">{formatVersionTime(v.created_at)}</span>
+                  <span className="dn-version-time">{relativeTime(v.created_at)}</span>
                   <span className="dn-version-label">
-                    {i === 0 ? "가장 최근 스냅샷" : "스냅샷"}
-                    {i === 0 && <em className="dn-version-now">최신</em>}
+                    자동 저장
+                    {i === 0 && <em className="dn-version-now">현재</em>}
                   </span>
                 </button>
               ))}
@@ -54,14 +55,16 @@ export function VersionHistoryModal({
           </div>
           <div className="dn-version-preview">
             <div className="dn-version-pv-head">
-              <span>{current ? formatVersionTime(current.created_at) : "버전 없음"}</span>
+              <span>
+                {current ? `${relativeTime(current.created_at)} · 자동 저장` : "버전 없음"}
+              </span>
               <div className="dn-version-actions">
                 <button className="dn-chip" onClick={onClose}>
                   닫기
                 </button>
                 <button
                   className="dn-btn-primary dn-version-restore"
-                  disabled={!current}
+                  disabled={!current || isCurrent}
                   onClick={() => {
                     if (current) {
                       onRestore(current.id);
@@ -74,11 +77,20 @@ export function VersionHistoryModal({
               </div>
             </div>
             <div className="dn-version-pv-body">
-              <div className="dn-version-empty">
-                {current
-                  ? "이 시점의 스냅샷으로 본문을 되돌립니다."
-                  : "복원할 버전을 선택하세요."}
-              </div>
+              {current ? (
+                <>
+                  <div className="dn-pv-line dn-pv-h" />
+                  <div className="dn-pv-line" style={{ width: "92%" }} />
+                  <div className="dn-pv-line" style={{ width: "80%" }} />
+                  <div className="dn-pv-line" style={{ width: "88%" }} />
+                  <div className="dn-pv-line dn-pv-gap" style={{ width: "60%" }} />
+                  <div className="dn-pv-line" style={{ width: "95%" }} />
+                  <div className="dn-pv-line" style={{ width: "70%" }} />
+                  <div className="dn-version-watermark">스냅샷 미리보기</div>
+                </>
+              ) : (
+                <div className="dn-version-empty">복원할 버전을 선택하세요.</div>
+              )}
             </div>
           </div>
         </div>

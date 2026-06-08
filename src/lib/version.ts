@@ -34,6 +34,28 @@ export async function restoreVersion(pageId: string, versionId: string): Promise
   ]);
 }
 
+/** Relative label like the mockup: 방금 전 / N분 전 / 오늘 HH:MM / 어제 HH:MM / 날짜. */
+export function relativeTime(utc: string): string {
+  const d = new Date(utc.replace(" ", "T") + "Z");
+  if (isNaN(d.getTime())) return utc;
+  const now = new Date();
+  const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
+  const hhmm = d.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  if (diffMin < 1) return "방금 전";
+  if (diffMin < 60) return `${diffMin}분 전`;
+  if (d.toDateString() === now.toDateString()) return `오늘 ${hhmm}`;
+  const yest = new Date(now);
+  yest.setDate(now.getDate() - 1);
+  if (d.toDateString() === yest.toDateString()) return `어제 ${hhmm}`;
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const da = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mo}-${da} ${hhmm}`;
+}
+
 /** Format a UTC SQLite timestamp into the user's local date-time string. */
 export function formatVersionTime(utc: string): string {
   // SQLite returns "YYYY-MM-DD HH:MM:SS" in UTC.

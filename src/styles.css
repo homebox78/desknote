@@ -1014,6 +1014,12 @@ optgroup {
   border-radius: 8px;
   padding: 8px;
   min-height: 80px;
+  border: 2px solid transparent;
+  transition: border-color 0.1s, background 0.1s;
+}
+.board-col.drop {
+  border-color: var(--nt-blue);
+  background: var(--nt-hover);
 }
 .board-col-head {
   display: flex;

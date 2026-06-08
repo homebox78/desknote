@@ -1,8 +1,10 @@
+import { useState } from "react";
 import type { DragEvent } from "react";
 import { CellValue } from "./cells";
 import type { ViewProps } from "./DatabaseView";
 
 export function BoardView(p: ViewProps) {
+  const [overKey, setOverKey] = useState<string | null>(null);
   const groupCol = p.columns.find((c) => c.type === "select");
   const titleCol = p.columns[0];
 
@@ -24,6 +26,7 @@ export function BoardView(p: ViewProps) {
 
   const onDrop = (e: DragEvent, groupId: string | null) => {
     e.preventDefault();
+    setOverKey(null);
     const rowId = e.dataTransfer.getData("text/plain");
     if (rowId) p.updateCell(rowId, groupCol.id, groupId);
   };
@@ -31,12 +34,18 @@ export function BoardView(p: ViewProps) {
   return (
     <div className="db-board">
       {groups.map((g) => {
+        const key = g.id ?? "_none";
         const items = p.rows.filter((r) => (r.data[groupCol.id] ?? null) === g.id);
         return (
           <div
-            key={g.id ?? "_none"}
-            className="board-col"
-            onDragOver={(e) => e.preventDefault()}
+            key={key}
+            className={`board-col ${overKey === key ? "drop" : ""}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              if (overKey !== key) setOverKey(key);
+            }}
+            onDragLeave={() => setOverKey((k) => (k === key ? null : k))}
             onDrop={(e) => onDrop(e, g.id)}
           >
             <div className="board-col-head">
@@ -50,7 +59,10 @@ export function BoardView(p: ViewProps) {
                 key={row.id}
                 className="board-card"
                 draggable
-                onDragStart={(e) => e.dataTransfer.setData("text/plain", row.id)}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", row.id);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
                 onClick={() => p.onOpenRow(row.id)}
               >
                 <div className="board-card-title">

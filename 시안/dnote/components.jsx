@@ -110,7 +110,7 @@ function LockScreen({ onUnlock, dark }) {
 }
 
 /* ---------- Sidebar ---------- */
-function SideRow({ icon: I, label, kbd, active, indent, muted, accent, onClick, onContext, density }) {
+function SideRow({ icon: I, label, kbd, active, indent, muted, accent, onClick, onContext, fav, onFav, density }) {
   return (
     <button
       className={`dn-srow ${active ? "is-active" : ""} ${muted ? "is-muted" : ""} ${accent ? "is-accent" : ""}`}
@@ -120,14 +120,24 @@ function SideRow({ icon: I, label, kbd, active, indent, muted, accent, onClick, 
     >
       <span className="dn-srow-ic"><I size={density === "compact" ? 15 : 16} /></span>
       <span className="dn-srow-label">{label}</span>
+      {onFav && (
+        <span
+          className={`dn-srow-fav ${fav ? "is-fav" : ""}`}
+          onClick={(e) => { e.stopPropagation(); onFav(); }}
+          title={fav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+        >
+          <Icon.star size={14} />
+        </span>
+      )}
       {kbd && <span className="dn-kbd">{kbd}</span>}
     </button>
   );
 }
 
-function Sidebar({ pages, activeId, onSelect, onOpenSearch, onOpenTrash, onOpenNotion, onOpenSettings, onNewSticky, onPinPage, stickyPageIds, density }) {
+function Sidebar({ pages, activeId, onSelect, onOpenSearch, onOpenTrash, onOpenNotion, onOpenSettings, onNewSticky, onPinPage, onToggleFav, stickyPageIds, density }) {
   const favs = pages.filter((p) => p.fav);
   const [menu, setMenu] = React.useState(null); // {x,y,pageId}
+  const menuPage = menu ? pages.find((p) => p.id === menu.pageId) : null;
   React.useEffect(() => {
     if (!menu) return;
     const close = () => setMenu(null);
@@ -155,12 +165,15 @@ function Sidebar({ pages, activeId, onSelect, onOpenSearch, onOpenTrash, onOpenN
             {favs.map((p) => (
               <SideRow
                 key={"fav-" + p.id}
-                icon={Icon.star}
+                icon={p.kind === "memo" ? Icon.note : p.type === "db" ? Icon.database : Icon.doc}
                 label={p.title}
                 indent={1}
                 active={p.id === activeId}
                 density={density}
                 onClick={() => onSelect(p.id)}
+                onContext={(e) => openMenu(e, p.id)}
+                fav={true}
+                onFav={() => onToggleFav(p.id)}
               />
             ))}
           </div>
@@ -181,6 +194,8 @@ function Sidebar({ pages, activeId, onSelect, onOpenSearch, onOpenTrash, onOpenN
             density={density}
             onClick={() => onSelect(p.id)}
             onContext={(e) => openMenu(e, p.id)}
+            fav={p.fav}
+            onFav={() => onToggleFav(p.id)}
           />
         ))}
         <SideRow icon={Icon.plus} label="새 페이지" indent={1} muted density={density} />
@@ -196,6 +211,9 @@ function Sidebar({ pages, activeId, onSelect, onOpenSearch, onOpenTrash, onOpenN
 
       {menu && (
         <div className="dn-ctxmenu" style={{ left: menu.x, top: menu.y }} onClick={(e) => e.stopPropagation()}>
+          <button className="dn-ctxmenu-item" onClick={() => { onToggleFav(menu.pageId); setMenu(null); }}>
+            <Icon.star size={15} /> {menuPage && menuPage.fav ? "즐겨찾기 해제" : "즐겨찾기에 추가"}
+          </button>
           <button
             className="dn-ctxmenu-item"
             onClick={() => { onPinPage(menu.pageId); setMenu(null); }}

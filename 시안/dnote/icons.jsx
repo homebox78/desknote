@@ -170,6 +170,24 @@ const Icon = {
       <circle cx="15" cy="8" r="1" fill="currentColor" stroke="none" />
     </Ic>
   ),
+  folder: (p) => <Ic {...p} d="M3 7a2 2 0 0 1 2-2h4l2 2.2h6a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />,
+  package: (p) => (
+    <Ic {...p}>
+      <path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8" />
+    </Ic>
+  ),
+  disk: (p) => (
+    <Ic {...p}>
+      <ellipse cx="12" cy="6" rx="8" ry="3" />
+      <path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" />
+    </Ic>
+  ),
+  cpu: (p) => (
+    <Ic {...p}>
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+      <path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" />
+    </Ic>
+  ),
 };
 
 Object.assign(window, { Icon, Ic });

@@ -19,7 +19,7 @@ const TONES = {
   steel: { light: "#44474e", dark: "#bbbdc3" },
 };
 
-const LS = { stickies: "dnote_stickies_v1", memos: "dnote_memopages_v1", notes: "dnote_notes_v1" };
+const LS = { stickies: "dnote_stickies_v1", memos: "dnote_memopages_v1", notes: "dnote_notes_v1", favs: "dnote_favs_v1" };
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
@@ -30,7 +30,7 @@ function plainText(p) {
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [phase, setPhase] = React.useState("onboarding");
+  const [phase, setPhase] = React.useState("install");
   const [activeId, setActiveId] = React.useState("p-flow");
   const [modal, setModal] = React.useState(null);
   const [pinned, setPinned] = React.useState(true);
@@ -39,8 +39,13 @@ function App() {
   const [pages, setPages] = React.useState(() => {
     const memos = load(LS.memos, []);
     const notes = load(LS.notes, {});
+    const favs = load(LS.favs, null);
     const base = PAGES.concat(memos.filter((m) => !PAGES.some((p) => p.id === m.id)));
-    return base.map((p) => (notes[p.id] != null ? { ...p, note: notes[p.id] } : p));
+    return base.map((p) => {
+      let q = notes[p.id] != null ? { ...p, note: notes[p.id] } : p;
+      if (favs) q = { ...q, fav: favs.includes(p.id) };
+      return q;
+    });
   });
   const [stickies, setStickies] = React.useState(() => load(LS.stickies, []));
   const zRef = React.useRef(stickies.reduce((m, s) => Math.max(m, s.z || 0), 0) + 1);
@@ -63,6 +68,7 @@ function App() {
     const notes = {};
     pages.forEach((p) => { if (p.note != null) notes[p.id] = p.note; });
     save(LS.notes, notes);
+    save(LS.favs, pages.filter((p) => p.fav).map((p) => p.id));
   }, [pages]);
 
   // theme + accent
@@ -75,7 +81,7 @@ function App() {
     el.style.setProperty("--fs", (t.fontScale / 100).toFixed(3));
   }, [dark, t.tone, t.fontScale]);
 
-  React.useEffect(() => { window.__nav = { phase: setPhase, page: setActiveId, modal: setModal }; }, []);
+  React.useEffect(() => { window.__nav = { phase: setPhase, page: setActiveId, modal: setModal, install: setPhase }; }, []);
 
   React.useEffect(() => {
     const onKey = (e) => {
@@ -114,8 +120,17 @@ function App() {
     setStickies((ss) => [...ss, { id: "stk-" + pageId + "-" + Date.now().toString(36), pageId, color: "yellow", pinned: true, x: pos.x, y: pos.y, z: zRef.current++ }]);
   };
   const openInApp = (pageId) => { setPhase("app"); setActiveId(pageId); };
+  const toggleFav = (id) => setPages((ps) => ps.map((p) => p.id === id ? { ...p, fav: !p.fav } : p));
 
   const locked = phase !== "app";
+
+  if (phase === "install") {
+    return (
+      <div className="dn-desktop">
+        <Installer dark={dark} onComplete={() => setPhase("onboarding")} />
+      </div>
+    );
+  }
 
   return (
     <div className="dn-desktop">
@@ -133,7 +148,7 @@ function App() {
             <Sidebar pages={pages} activeId={activeId} onSelect={setActiveId}
               onOpenSearch={() => setModal("search")} onOpenTrash={() => setModal("trash")}
               onOpenNotion={() => setModal("notion")} onNewSticky={newSticky} onPinPage={pinPage}
-              stickyPageIds={stickyPageIds} density={t.density} />
+              onToggleFav={toggleFav} stickyPageIds={stickyPageIds} density={t.density} />
             <main className="dn-main">
               {onSettings ? (
                 <SettingsPage t={t} set={setTweak} />
@@ -146,7 +161,9 @@ function App() {
                 <DatabasePage page={active} fullWidth={t.fullWidth} />
               ) : (
                 <DocPage page={active} fullWidth={t.fullWidth} onHistory={() => setModal("version")}
-                  onPin={() => pinPage(active.id)} />
+                  onPin={() => pinPage(active.id)}
+                  onBlocks={(blocks) => setPages((ps) => ps.map((p) => p.id === active.id ? { ...p, blocks } : p))}
+                  onTitle={(title) => setPages((ps) => ps.map((p) => p.id === active.id ? { ...p, title: title || "제목 없음" } : p))} />
               )}
             </main>
           </div>

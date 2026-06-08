@@ -206,7 +206,7 @@ export function SettingsPage({
             }
           />
           <Row
-            icon={Icon.palette}
+            icon={Icon.hash}
             title="강조 톤"
             desc="버튼·강조에 쓰이는 무채색 잉크"
             control={<ToneSwatches value={prefs.tone} onChange={(v) => setPref("tone", v)} />}
@@ -248,7 +248,7 @@ export function SettingsPage({
           />
           <Row
             last
-            icon={Icon.doc}
+            icon={Icon.type}
             title="본문 글자 크기"
             control={
               <NumStepper

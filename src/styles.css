@@ -201,6 +201,16 @@ optgroup {
 .win-btn.pin.on {
   color: var(--nt-blue);
 }
+.tb-controls {
+  align-items: center;
+}
+.tb-div {
+  width: 1px;
+  height: 18px;
+  background: var(--nt-border-strong);
+  margin: 0 5px;
+  flex: 0 0 auto;
+}
 .win-btn .ic-win {
   width: 11px;
   height: 11px;
@@ -407,6 +417,7 @@ optgroup {
   margin: 30px 0 18px;
   padding: 0;
   cursor: pointer;
+  color: var(--nt-text-faint);
   background: color-mix(in srgb, var(--nt-text-faint) 9%, transparent);
 }
 .page-icon:hover {
@@ -808,18 +819,40 @@ optgroup {
   overflow-y: auto;
   padding: 2px 8px 8px;
 }
-/* let the sticky's paper color show through the editor */
-.sticky-body .bn-container,
-.sticky-body .bn-editor,
-.sticky-body .bn-container * {
-  background: transparent !important;
-}
+/* Sticky paper is always light: force dark text and transparent backgrounds so
+   content authored on a dark background (white text) stays readable. */
 .sticky-body .bn-container {
   font-size: 13.5px;
-  color: #2b2d31;
+}
+.sticky-body .bn-editor,
+.sticky-body .bn-editor * {
+  color: #2b2d31 !important;
+  background-color: transparent !important;
 }
 .sticky-body .bn-editor {
   padding-inline: 0 !important;
+}
+/* Replace BlockNote's English placeholder inside stickies. */
+.sticky-body .bn-editor [data-placeholder]::before {
+  content: "메모를 입력하세요…" !important;
+  color: rgba(43, 45, 49, 0.4) !important;
+}
+/* Slim scrollbar tinted to sit nicely on the sticky paper. */
+.sticky-body::-webkit-scrollbar {
+  width: 8px;
+}
+.sticky-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.sticky-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.34);
+  background-clip: padding-box;
+}
+.sticky-body::-webkit-scrollbar-track {
+  background: transparent;
 }
 .sticky-foot {
   display: flex;
@@ -1385,12 +1418,42 @@ optgroup {
 }
 .gallery-card {
   position: relative;
-  background: var(--nt-bg);
-  border: 1px solid var(--nt-border);
-  border-radius: 8px;
-  padding: 12px;
-  min-height: 90px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  background: var(--nt-card);
+  border: 1px solid var(--nt-border-strong);
+  border-radius: 11px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(20, 22, 28, 0.05);
+  transition: border-color 0.12s;
+}
+.gallery-card:hover {
+  border-color: var(--nt-text-faint);
+}
+.gallery-card-cover {
+  height: 110px;
+  border-bottom: 1px solid var(--nt-border);
+  background: color-mix(in srgb, var(--nt-blue) 6%, var(--nt-card));
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  color: var(--nt-text-faint);
+}
+.gallery-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gallery-cover-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.gallery-card-inner {
+  padding: 12px 13px 14px;
 }
 .gallery-card-title {
   font-size: 15px;
@@ -2735,4 +2798,44 @@ optgroup {
   height: 1px;
   background: var(--nt-border);
   margin: 5px 4px;
+}
+
+/* ── App scrollbars (mockup) ───────────────────────────── */
+.main::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,
+.db-board::-webkit-scrollbar,
+.db-table-wrap::-webkit-scrollbar,
+.db-gallery-wrap::-webkit-scrollbar,
+.dn-search-body::-webkit-scrollbar,
+.dn-trash-body::-webkit-scrollbar,
+.dn-version-scroll::-webkit-scrollbar,
+.dn-doc-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.main::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb,
+.db-board::-webkit-scrollbar-thumb,
+.db-table-wrap::-webkit-scrollbar-thumb,
+.db-gallery-wrap::-webkit-scrollbar-thumb,
+.dn-search-body::-webkit-scrollbar-thumb,
+.dn-trash-body::-webkit-scrollbar-thumb,
+.dn-version-scroll::-webkit-scrollbar-thumb,
+.dn-doc-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--nt-text-faint) 42%, transparent);
+  border-radius: 6px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+.main::-webkit-scrollbar-thumb:hover,
+.sidebar::-webkit-scrollbar-thumb:hover,
+.dn-doc-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--nt-text-faint) 62%, transparent);
+  background-clip: padding-box;
+}
+.main::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track,
+.db-board::-webkit-scrollbar-track,
+.dn-doc-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }

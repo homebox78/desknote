@@ -63,7 +63,11 @@ export function PageView({ page, theme, onPatch, refresh }: Props) {
   return (
     <div className="page">
       <div className="page-icon" onClick={pickIcon} title="아이콘 변경">
-        {page.icon || "📄"}
+        {!page.icon || ["📄", "🗃️", "📌"].includes(page.icon) ? (
+          page.type === "db" ? <Icon.database size={34} /> : <Icon.doc size={34} />
+        ) : (
+          page.icon
+        )}
       </div>
       <input
         className="page-title"
@@ -235,19 +239,19 @@ function EditorBody({
     <>
       <div className="export-bar">
         <button className="dn-chip" onClick={() => doExport("md")}>
-          <Icon.download size={14} /> Markdown
+          Markdown
         </button>
         <button className="dn-chip" onClick={() => doExport("html")}>
-          <Icon.download size={14} /> HTML
+          HTML
         </button>
         <button className="dn-chip" onClick={() => doExport("pdf")}>
-          <Icon.download size={14} /> PDF
+          PDF
         </button>
         <button className="dn-chip" onClick={() => setShowHistory(true)}>
-          <Icon.history size={14} /> 기록
+          <Icon.history size={15} /> 기록
         </button>
         <button className="dn-chip" onClick={openAsSticky}>
-          <Icon.note size={14} /> 포스트잇
+          <Icon.note size={15} /> 포스트잇
         </button>
       </div>
       <div onContextMenu={onCtx}>

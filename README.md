@@ -8,6 +8,18 @@
 
 ---
 
+## ⬇️ 다운로드 & 설치
+
+- **설치 파일 바로 받기**: [D-Note_1.2.0_x64-setup.exe](https://github.com/homebox78/desknote/releases/download/v1.2.0-sqlcipher/D-Note_1.2.0_x64-setup.exe)
+- **릴리스 목록**: https://github.com/homebox78/desknote/releases
+- **📖 상세 사용 설명서**: [MANUAL.md](MANUAL.md) — 설치부터 글쓰기·데이터베이스·포스트잇·설정·단축키까지 전부
+- **간단 설치 안내**: [INSTALL.md](INSTALL.md)
+
+> 설치 파일은 코드 서명이 없어 SmartScreen 경고가 뜰 수 있습니다 → **추가 정보 → 실행**.
+> 기존 사용자는 첫 실행 시 평문 DB가 자동으로 암호화됩니다(변환 전 `desknote.db` 백업 권장).
+
+---
+
 ## 기능
 
 ### 노트 · 문서
@@ -46,9 +58,11 @@
 ### 보안 · 설정 · 디자인
 | 기능 | 설명 |
 | --- | --- |
-| 잠금 | 마스터 비밀번호(Stronghold + Argon2id), **자동 잠금**(끔/5/15/30분) |
+| **DB 암호화** | **SQLCipher로 `desknote.db` 전체 암호화** — 마스터 비밀번호 → Argon2id 키 → `PRAGMA key`. 백업도 자동 암호화 |
+| 잠금 | 마스터 비밀번호(Argon2id), **자동 잠금**(끔/5/15/30분, 잠금 시 키를 메모리에서 제거) |
 | 네트워크 차단 | CSP `connect-src 'none'` (웹뷰는 외부로 어떤 요청도 못 보냄) |
-| 백업 | 날짜별 DB 자동 백업(하루 1회) `backups/desknote-<날짜>.db` |
+| **외부 통신 기록** | 사이드바 하단 배지 "외부 통신 N건"(기본 0건) + 전체 기록 모달 — 누적 송신 투명성 로그 |
+| 백업 | 날짜별 DB 자동 백업(하루 1회) `backups/desknote-<날짜>.db` (암호화됨) |
 | **설정 페이지** | 모양(테마·강조 톤·사이드바 밀도/너비·전체폭·글자 크기) · 보안 · 백업 · 정보 |
 | 온보딩 | 최초 실행 4단계(환영→비밀번호→모양→완료) |
 | 디자인 | 모노크롬 시안 · D-Note 로고 · 라인 SVG 아이콘 · Pretendard · 다크/라이트 |
@@ -58,7 +72,7 @@
 
 ## 데이터 위치 (Windows)
 `%APPDATA%\com.desknote.app\` *(설정에서 폴더 변경 가능)*
-- `desknote.db` — 모든 페이지/본문/데이터베이스 (SQLite)
+- `desknote.db` — 모든 페이지/본문/데이터베이스 (**SQLCipher 암호화 SQLite**)
 - `vault.hold` — 비밀번호 검증용 암호화 금고 (Stronghold)
 - `assets/` — 업로드한 이미지·첨부
 - `backups/` — 날짜별 DB 스냅샷
@@ -69,7 +83,7 @@
 
 ## 빌드 & 실행
 
-사전 준비(한 번만): **Rust**(rustup), **Visual Studio C++ Build Tools**("C++를 사용한 데스크톱 개발" 워크로드), **WebView2 런타임**(Win11 기본 포함).
+사전 준비(한 번만): **Rust**(rustup), **Visual Studio C++ Build Tools**("C++를 사용한 데스크톱 개발" 워크로드), **WebView2 런타임**(Win11 기본 포함), **Strawberry Perl**(`winget install StrawberryPerl.StrawberryPerl` — SQLCipher의 vendored OpenSSL 소스 빌드에 필요. Git 내장 msys perl로는 실패하며, NASM은 불필요).
 
 ```bash
 npm install            # 의존성
@@ -88,11 +102,12 @@ npm run tauri build    # 설치형 빌드 (NSIS)
 
 ---
 
-## 보안 설계 (4계층)
-1. **네트워크 차단** — CSP `connect-src 'none'`. 업데이터·텔레메트리 없음.
-2. **접근 잠금** — 마스터 비밀번호 + 자동 잠금. Stronghold 스냅샷은 그 비밀번호로만 복호화.
-3. **키 파생** — Argon2id로 비밀번호 → 32바이트 키.
-4. **로컬 전용 I/O** — 파일 쓰기/이미지/백업/가져오기를 Rust 명령으로 처리. 노션 API는 `tauri-plugin-http` 스코프로 `api.notion.com`만 허용 → 웹뷰 CSP는 그대로 유지.
+## 보안 설계 (5계층)
+1. **DB 암호화(SQLCipher)** — `desknote.db` 전체가 암호화되어 디스크에 평문이 남지 않음. 잠금 해제 시 마스터 키를 `PRAGMA key`로 주입해 연결. 백업 파일도 동일하게 암호화. 기존 평문 DB는 첫 실행 시 `sqlcipher_export`로 1회 자동 변환.
+2. **네트워크 차단** — CSP `connect-src 'none'`. 업데이터·텔레메트리 없음. 모든 외부 송신은 단일 길목(노션 fetch)에서 계측되어 `network-log.json`에 기록됨.
+3. **접근 잠금** — 마스터 비밀번호 + 자동 잠금(잠금 시 연결·키를 메모리에서 제거). 비밀번호가 틀리면 SQLCipher가 DB를 열지 못함 → 데이터 접근 자체가 차단.
+4. **키 파생** — Argon2id로 비밀번호 → 32바이트 키(Stronghold 금고와 동일 파생).
+5. **로컬 전용 I/O** — 파일 쓰기/이미지/백업/가져오기를 Rust 명령으로 처리. 노션 API(옵트인)는 `tauri-plugin-http` 스코프로 `api.notion.com`만 허용 → 웹뷰 CSP는 그대로 유지.
 
 ---
 
@@ -109,8 +124,9 @@ npm run tauri build    # 설치형 빌드 (NSIS)
 
 ## 알아둘 점 / 다음 단계
 - **PDF 한글**: jsPDF 기본 폰트는 라틴 전용 → PDF의 한글이 깨질 수 있음(HTML·MD·노션은 정상). CJK 폰트 등록 시 해결.
-- **노션 API 업로드**: DB 페이지는 건너뜀(CSV로 이전), 이미지는 로컬 파일이라 제외.
-- **비밀번호 변경 / SQLCipher 전체 DB 암호화**: 후속 작업으로 검토 중.
+- **노션 API 업로드**: 기본 OFF · 설정에서 옵트인. DB 페이지는 건너뜀(CSV로 이전), 이미지는 로컬 파일이라 제외.
+- **DB 전체 암호화(SQLCipher)**: ✅ 적용됨(백업 포함). 빌드 시 vendored OpenSSL 컴파일을 위해 **Strawberry Perl** 필요(NASM 불필요).
+- **다음 단계**: 비밀번호 변경 기능, `assets` 첨부 파일 암호화(검토 중).
 - 설치 프로그램은 NSIS 표준 마법사 기반(브랜딩 적용)이며, 시안의 완전 플랫 커스텀 UI는 NSIS 한계로 일부만 반영됩니다.
 
 ---

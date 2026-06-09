@@ -1,6 +1,7 @@
 import type { MouseEvent } from "react";
 import * as db from "../lib/db";
 import { Icon, LogoMark } from "./icons";
+import { NetBadge } from "./NetBadge";
 
 interface Props {
   pages: db.Page[];
@@ -12,7 +13,6 @@ interface Props {
   onAddDatabase: (parent: string | null) => void;
   onImport: () => void;
   onExportNotion: () => void;
-  onNotionUpload: () => void;
   onNewSticky: () => void;
   onMenu: (e: MouseEvent, page: db.Page) => void;
   onToggleFav: (id: string) => void;
@@ -164,11 +164,8 @@ export function Sidebar(p: Props) {
         </span>
         <span className="label">노션으로 내보내기 (ZIP)</span>
       </div>
-      <div className="sb-item" onClick={p.onNotionUpload}>
-        <span className="icon">
-          <Icon.link size={16} />
-        </span>
-        <span className="label">노션에 직접 업로드 (API)</span>
+      <div className="sb-foot">
+        <NetBadge />
       </div>
     </aside>
   );

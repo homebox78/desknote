@@ -20,8 +20,10 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = ["protocol-asset"] }
 tauri-plugin-opener = "2"
-tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tauri-plugin-stronghold = "2"
+# Full-database encryption at rest. SQLCipher (vendored, with vendored OpenSSL)
+# so the build needs no system SQLite/OpenSSL — only a C toolchain + NASM.
+rusqlite = { version = "0.32", features = ["bundled-sqlcipher-vendored-openssl"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-http = "2"
 serde = { version = "1", features = ["derive"] }

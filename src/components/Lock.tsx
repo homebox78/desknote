@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Stronghold } from "@tauri-apps/plugin-stronghold";
 import { invoke } from "@tauri-apps/api/core";
+import { openDb } from "../lib/db";
 import { Icon, LogoMark } from "./icons";
 
 const CLIENT = "desknote";
@@ -47,6 +48,9 @@ export function Lock({ onUnlock }: { onUnlock: () => void }) {
         }
         await stronghold.save();
       }
+      // Open (and, on first run after upgrade, encrypt) the SQLCipher database
+      // with the same password. A wrong password fails here too.
+      await openDb(pw);
       onUnlock();
     } catch {
       setErr("비밀번호가 올바르지 않습니다");

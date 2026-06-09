@@ -13,6 +13,9 @@ export interface Prefs {
   fontScale: number; // percent (90–120)
   autoLock: AutoLock;
   autoBackup: boolean;
+  // Opt-in: allow direct upload to api.notion.com. Off by default so the app
+  // makes no outbound connection unless the user explicitly enables it.
+  notionUpload: boolean;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -23,6 +26,7 @@ export const DEFAULT_PREFS: Prefs = {
   fontScale: 100,
   autoLock: "off",
   autoBackup: true,
+  notionUpload: false,
 };
 
 export const TONE_COLORS: Record<Tone, string> = {

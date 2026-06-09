@@ -1853,6 +1853,72 @@ optgroup {
   border-radius: 50%;
   background: var(--nt-text);
 }
+
+/* Sidebar footer: network transparency indicator (pinned to bottom) */
+.sb-foot {
+  margin-top: auto;
+  padding: 8px 12px 2px;
+}
+.sb-net {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 9px;
+  border: 1px solid var(--nt-border);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.12s;
+}
+.sb-net:hover {
+  background: var(--nt-hover-bg);
+}
+.sb-net-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sb-net--ok {
+  color: #1a7f4b;
+}
+.sb-net--ok svg {
+  color: #1a7f4b;
+}
+.sb-net--warn {
+  color: #b06a00;
+}
+.sb-net--warn svg {
+  color: #b06a00;
+}
+.dn-net-note {
+  padding: 10px 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--nt-text-light);
+  border-bottom: 1px solid var(--nt-border);
+}
+.dn-net-note code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  background: var(--nt-code-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.dn-net-detail {
+  color: var(--nt-text-light);
+  font-weight: 400;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11.5px;
+}
+.dn-net-time {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--nt-text-light);
+  white-space: nowrap;
+}
 .dn-path {
   font-family: ui-monospace, Menlo, monospace;
   font-size: 11.5px;

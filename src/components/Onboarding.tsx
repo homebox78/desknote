@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Stronghold } from "@tauri-apps/plugin-stronghold";
+import { openDb } from "../lib/db";
 import { Icon, LogoMark, type IconProps } from "./icons";
 import { TONE_COLORS, type Tone, type Prefs } from "../lib/prefs";
 
@@ -84,6 +85,8 @@ export function Onboarding({
         await stronghold.createClient(CLIENT);
       }
       await stronghold.save();
+      // Create the encrypted SQLCipher database with this password.
+      await openDb(pw);
       onComplete();
     } catch (e) {
       setErr("설정 실패: " + String(e));

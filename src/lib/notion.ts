@@ -13,6 +13,7 @@ import type { PartialBlock } from "@blocknote/core";
 import * as db from "./db";
 import * as dv from "./dbviews";
 import { toCsv } from "./export";
+import { recordEgress } from "./net";
 
 function safeName(s: string): string {
   return (s.trim() || "제목 없음").replace(/[\\/:*?"<>|]/g, "_").slice(0, 80);
@@ -104,6 +105,14 @@ async function notionFetch(
   method: string,
   body: unknown
 ): Promise<any> {
+  // Record this outbound request in the transparency log before it leaves the
+  // machine. This is the app's only egress path.
+  try {
+    const { pathname } = new URL(url);
+    await recordEgress("api.notion.com", `${method} ${pathname}`);
+  } catch {
+    /* logging must never block the upload */
+  }
   const resp = await tauriFetch(url, {
     method,
     headers: {

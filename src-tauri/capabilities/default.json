@@ -21,11 +21,6 @@
     "core:window:allow-close",
     "core:window:allow-destroy",
     "opener:default",
-    "sql:default",
-    "sql:allow-load",
-    "sql:allow-execute",
-    "sql:allow-select",
-    "sql:allow-close",
     "stronghold:default",
     "dialog:default",
     {

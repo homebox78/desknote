@@ -1,17 +1,36 @@
-// Local SQLite access via the Tauri SQL plugin. Every query runs against the
-// single on-disk database; nothing here touches the network.
-import Database from "@tauri-apps/plugin-sql";
+// Local SQLite access via an encrypted (SQLCipher) database in the Rust backend.
+// Every query goes through `db_select` / `db_execute` commands against the single
+// key-injected connection opened at unlock. Nothing here touches the network.
 import { invoke } from "@tauri-apps/api/core";
 
-let _db: Database | null = null;
+/** Minimal stand-in for the old tauri-plugin-sql `Database`, backed by the
+ *  encrypted connection in Rust. Same `select`/`execute` surface, so existing
+ *  callers are unchanged. */
+interface Db {
+  select<T>(sql: string, params?: unknown[]): Promise<T>;
+  execute(sql: string, params?: unknown[]): Promise<number>;
+}
 
-export async function getDb(): Promise<Database> {
-  if (!_db) {
-    // The connection string depends on the chosen data folder (Rust decides).
-    const url = await invoke<string>("db_url");
-    _db = await Database.load(url);
-  }
-  return _db;
+const conn: Db = {
+  select: <T>(sql: string, params: unknown[] = []) =>
+    invoke<T>("db_select", { sql, params }),
+  execute: (sql: string, params: unknown[] = []) =>
+    invoke<number>("db_execute", { sql, params }),
+};
+
+export async function getDb(): Promise<Db> {
+  return conn;
+}
+
+/** Unlock + open the encrypted database with the master password. Called once
+ *  from the lock screen before any query runs. */
+export async function openDb(password: string): Promise<void> {
+  await invoke("db_open", { password });
+}
+
+/** Lock the database, clearing the key and connection in the backend. */
+export async function closeDb(): Promise<void> {
+  await invoke("db_close");
 }
 
 export interface Page {

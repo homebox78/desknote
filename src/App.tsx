@@ -48,14 +48,19 @@ export default function App() {
       .catch(() => setVault({ path: "", exists: true }));
   }, []);
 
-  // Auto-lock after inactivity (returns to the lock screen).
+  // Auto-lock after inactivity (returns to the lock screen). Locking also drops
+  // the SQLCipher connection and key from backend memory.
   useEffect(() => {
     if (!unlocked || prefs.autoLock === "off") return;
     const ms = Number(prefs.autoLock) * 60000;
-    let timer = window.setTimeout(() => setUnlocked(false), ms);
+    const lock = () => {
+      void db.closeDb();
+      setUnlocked(false);
+    };
+    let timer = window.setTimeout(lock, ms);
     const reset = () => {
       window.clearTimeout(timer);
-      timer = window.setTimeout(() => setUnlocked(false), ms);
+      timer = window.setTimeout(lock, ms);
     };
     const evs = ["mousemove", "keydown", "mousedown", "wheel"];
     evs.forEach((e) => window.addEventListener(e, reset, { passive: true }));
@@ -341,7 +346,6 @@ function Workspace({
           onAddDatabase={addDatabase}
           onImport={doImport}
           onExportNotion={doExportNotion}
-          onNotionUpload={() => setShowNotion(true)}
           onNewSticky={newSticky}
           onMenu={openMenu}
           onToggleFav={toggleFav}
@@ -351,7 +355,13 @@ function Workspace({
 
         <main className="main">
           {showSettings ? (
-            <SettingsPage theme={theme} onTheme={setTheme} prefs={prefs} setPref={setPref} />
+            <SettingsPage
+            theme={theme}
+            onTheme={setTheme}
+            prefs={prefs}
+            setPref={setPref}
+            onNotionUpload={() => setShowNotion(true)}
+          />
           ) : cur ? (
             <PageView
               key={cur.id}
@@ -383,7 +393,9 @@ function Workspace({
           }}
         />
       )}
-      {showNotion && <NotionUploadModal onClose={() => setShowNotion(false)} />}
+      {showNotion && prefs.notionUpload && (
+        <NotionUploadModal onClose={() => setShowNotion(false)} />
+      )}
       {menu && <ContextMenu {...menu} onClose={() => setMenu(null)} />}
     </div>
   );

@@ -142,11 +142,13 @@ export function SettingsPage({
   onTheme,
   prefs,
   setPref,
+  onNotionUpload,
 }: {
   theme: "light" | "dark";
   onTheme: (t: "light" | "dark") => void;
   prefs: Prefs;
   setPref: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void;
+  onNotionUpload: () => void;
 }) {
   const [dataDir, setDataDir] = useState("");
   const lastBackup = localStorage.getItem("desknote-backup") || "—";
@@ -267,7 +269,7 @@ export function SettingsPage({
           <Row
             icon={Icon.key}
             title="마스터 비밀번호"
-            desc="Stronghold + Argon2id 로 보호"
+            desc="Argon2id 키 파생 · SQLCipher로 DB 전체 암호화"
             control={
               <button
                 className="dn-chip-btn"
@@ -306,6 +308,54 @@ export function SettingsPage({
               </span>
             }
           />
+        </Card>
+
+        <Card label="외부 연동" icon={Icon.link}>
+          <div className="dn-net-note">
+            D-Note는 기본적으로 완전한 오프라인 전용입니다. <b>여기에서 직접 켜고
+            업로드를 실행하지 않는 한, 어떤 데이터도 외부로 나가지 않습니다.</b> 이
+            기능을 켜면 업로드 시에만 <code>api.notion.com</code> 으로 통신하며, 모든
+            요청은 사이드바 하단의 <b>외부 통신 기록</b>에 그대로 남습니다.
+          </div>
+          <Row
+            last={!prefs.notionUpload}
+            icon={Icon.link}
+            title="노션에 직접 업로드 (API)"
+            desc={
+              prefs.notionUpload
+                ? "켜짐 · 업로드 실행 시 api.notion.com 으로 전송"
+                : "꺼짐 · 오프라인 전용"
+            }
+            control={
+              <Toggle
+                on={prefs.notionUpload}
+                onChange={(v) => {
+                  if (
+                    v &&
+                    !confirm(
+                      "직접 업로드를 켜면 업로드 실행 시 선택한 데이터가 api.notion.com 으로 전송됩니다.\n" +
+                        "이는 D-Note의 오프라인 원칙에서 벗어나는 유일한 기능입니다. 켜시겠습니까?"
+                    )
+                  )
+                    return;
+                  setPref("notionUpload", v);
+                }}
+              />
+            }
+          />
+          {prefs.notionUpload && (
+            <Row
+              last
+              icon={Icon.export}
+              title="지금 업로드"
+              desc="노션 통합 토큰과 대상 페이지를 입력해 전송합니다"
+              control={
+                <button className="dn-chip-btn" onClick={onNotionUpload}>
+                  업로드 실행
+                </button>
+              }
+            />
+          )}
         </Card>
 
         <Card label="백업" icon={Icon.refresh}>

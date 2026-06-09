@@ -3,6 +3,8 @@
 오프라인 전용 · 암호화 · Notion 스타일 데스크탑 노트 / 문서 / 데이터베이스 앱
 **v1.2.0** · Tauri 2 + React 19 + BlockNote + SQLite
 
+### ▶️ [⬇️ 설치 파일 다운로드 (.exe)](https://github.com/homebox78/desknote/releases/download/v1.2.0-sqlcipher/D-Note_1.2.0_x64-setup.exe) &nbsp;·&nbsp; 📖 [사용 설명서 보기 (MANUAL)](MANUAL.md)
+
 > 모든 데이터는 사용자 PC에만 저장되고 외부 네트워크 통신을 하지 않는 것이 제1원칙입니다.
 > 노션 업로드만 사용자가 명시적으로 실행할 때, `api.notion.com` 으로만 예외 통신합니다.
 
@@ -10,10 +12,12 @@
 
 ## ⬇️ 다운로드 & 설치
 
-- **설치 파일 바로 받기**: [D-Note_1.2.0_x64-setup.exe](https://github.com/homebox78/desknote/releases/download/v1.2.0-sqlcipher/D-Note_1.2.0_x64-setup.exe)
-- **릴리스 목록**: https://github.com/homebox78/desknote/releases
-- **📖 상세 사용 설명서**: [MANUAL.md](MANUAL.md) — 설치부터 글쓰기·데이터베이스·포스트잇·설정·단축키까지 전부
-- **간단 설치 안내**: [INSTALL.md](INSTALL.md)
+| | |
+| --- | --- |
+| **설치 파일 (.exe)** | [**D-Note_1.2.0_x64-setup.exe 바로 받기**](https://github.com/homebox78/desknote/releases/download/v1.2.0-sqlcipher/D-Note_1.2.0_x64-setup.exe) |
+| **상세 사용 설명서** | 📖 [**MANUAL.md**](MANUAL.md) — 설치·글쓰기·데이터베이스·포스트잇·설정·단축키 전부 |
+| 간단 설치 안내 | [INSTALL.md](INSTALL.md) |
+| 릴리스 목록 | https://github.com/homebox78/desknote/releases |
 
 > 설치 파일은 코드 서명이 없어 SmartScreen 경고가 뜰 수 있습니다 → **추가 정보 → 실행**.
 > 기존 사용자는 첫 실행 시 평문 DB가 자동으로 암호화됩니다(변환 전 `desknote.db` 백업 권장).
